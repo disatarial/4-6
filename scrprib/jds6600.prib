@@ -1,0 +1,108 @@
+\ настройки прибора
+REQUIRE  HYPE ~disa\~day\hype3\hype3.f
+\ REQUIRE PriborPassport priborpassport.f
+REQUIRE com_port ~disa/COMM.F
+
+ 
+
+S" Load jds6600..." TYPE CR
+
+CLASS jds6600 
+ 
+	32 DEFS name_pribor
+
+  1 FLOATS  DEFS data 
+\ PriborPassport DEFS  Passport
+
+  CELL DEFS pribor 
+
+\ 1 FLOATS DEFS FREQ_MIN 
+\ 1 FLOATS DEFS FREQ_MAX 
+\ 1 FLOATS DEFS DEFS LEVEL_MAX 
+
+ CELL DEFS type_pribor  \ тип прибора
+ CELL DEFS zavNumber  \ заводской ( интвента.. )номер 
+ CELL DEFS interface  \ удаленный интерфейс 1-comport; 2- tcp/ip; 3-gpib-ni
+	\ ком порт
+		CELL DEFS ComPort \ номер порта
+		CELL DEFS ComSpeed \ скорость работы
+		4 CELLS  DEFS  ComState  \  настройки ком портаб 
+		
+	\ Локальная сеть pct\ip
+		CELL DEFS TcpAdres
+		CELL DEFS TcpPort
+	\ gpib NI
+\		CELL DEFS NIGpibAdres
+\		CELL DEFS NIGbibPort
+
+ init: 
+ 1 type_pribor  ! \ генератор-1; измеритель-10;
+
+ S" jds6600"  \ 2DUP . .
+  2DUP  \ +  0 SWAP C! \ положили "0" в конец строки
+  name_pribor SWAP 1 +   CMOVE \ копируем название прибора
+name_pribor +  0 SWAP ! DROP
+ ;
+
+: Name 	name_pribor ; \ название прибора
+
+: Start
+|| D:  Port   D: etalon  D: flag    ||
+
+\ Подключаем файл характеристик прибора  
+ S" ./pribors/JDS6600.pnast"  
+ INCLUDE-PROBE IF ."   ERROR haracteristic pribor not found  " CR -1 flag ! THEN \ считываем характеристики прибора 
+
+interface 1 =  \ рабоатем с ком портом
+IF
+	com_port NewObj pribor !  \ 
+	" \\.\"  Port !  ComPort  >NUM  Port @   STR+   
+	Port  @  pribor @ ^  open
+	ComSpeed @ 8 0 0   pribor   @ ^ set_comm ( BaudRate ByteSize StopBits Parity -- ior ) 
+THEN 
+." testing no execute" CR
+  CR
+  flag @ DUP . CR
+;
+ 
+ 
+: SetFreq    FDUP ." SetFreq=" F.
+  F>D  DROP  100 M* \ на стеке двойное число!
+\   >NUM 
+  (D.) " :w23=" DUP >R STR+  
+  S" ." R@ STR+
+R>  S+CRLF    
+DUP STR@ TYPE
+  pribor    @ ^   write  
+ ; 
+ 
+: SetLevel    
+  dBm->V  1e3 F* 
+   ." SetLevel =" FDUP  F.   
+   F>D DROP  DUP .  >NUM        \ число требуется в миливольтах 
+  " :w25=" DUP >R STR+  
+  S" ." R@ STR+
+  R>  S+CRLF    
+  DUP STR@ TYPE
+  pribor    @ ^   write  
+ ;
+  
+: GetLevel  ." GetLevel=" data F@ FDUP F. 1 ; 
+: Off ." off" ;
+
+: Stop
+ 100 PAUSE
+ pribor  @ ^    close \ закрыли после использования
+ pribor  @ FreeObj
+ ;
+
+\ CONTEXT 
+\ ORDER .  CR
+
+;CLASS jds6600 
+ 
+ 
+\ CONTEXT 
+\ ORDER .  CR
+S" .....Load jds6600" TYPE CR
+

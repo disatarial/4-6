@@ -1,0 +1,294 @@
+\ диалог отккрытия файла
+\ VARIABLE window_open_files_dialog
+\ VARIABLE window_save_files_dialog
+\ 0 VALUE open_files_dialog_flag
+
+\ ---------------------------------------------------------------------------------------------------------------------------
+VARIABLE  otmena_button_open_files_dialog
+VARIABLE  open_button_open_files_dialog
+:NONAME   
+." otmena_button_open_files_dialog"
+ 	window_open_files_dialog @  1 gtk_widget_hide DROP \ DROP
+	0 ;  1 CELLS  CALLBACK: otmena_button_open_files_dialog_click 
+:NONAME   
+|| D: file  ||
+." open_button_open_files_dialog"
+	window_open_files_dialog @  1 gtk_file_chooser_get_filename     file !
+	file @	IF \ название файла в наличии
+ 	file @ ASCIIZ>  STR>S  file ! \ TYPE CR
+
+	 	4 file @ TablFreqFirst LoadFile
+		
+ 	window_open_files_dialog @  1 gtk_widget_hide DROP \ DROP
+	THEN
+	Refresh_freq_list
+	0 ;  1 CELLS  CALLBACK: open_button_open_files_dialog_click 
+
+: open_files_dialog  
+  window_open_files_dialog @  1 gtk_widget_show DROP \ DROP
+\ Указание  каталога  поиска 
+  " ./work" >R  R@ STR@  DROP window_open_files_dialog   @ 2 gtk_file_chooser_set_current_folder   R> STRFREE   ." filechooserbutton_pribor =" . CR	
+;
+
+
+\ ----------------------------------------------------------------------------------------------------------------------------
+VARIABLE  otmena_button_save_files_dialog
+VARIABLE  save_button_save_files_dialog
+
+:NONAME   
+." otmena_button_save_files_dialog"
+ 	window_save_files_dialog @  1 gtk_widget_hide DROP \ DROP
+	0 ;  1 CELLS  CALLBACK: otmena_button_save_files_dialog_click
+:NONAME   
+|| D: file  ||
+." save_button_save_files_dialog"
+	window_save_files_dialog @  1 gtk_file_chooser_get_filename     file !
+	file @	IF \ название файла в наличии
+ 	file @ ASCIIZ>  STR>S  file ! \ TYPE CR
+	file @ TablFreqFirst SaveData
+	
+	window_save_files_dialog @  1 gtk_widget_hide DROP \ DROP
+	THEN
+	Refresh_freq_list
+	0 ;  1 CELLS  CALLBACK: save_button_save_files_dialog_click
+
+: save_files_dialog  
+\	" window_save_files_dialog"  DUP >R STR@  DROP builder @ 2 gtk_builder_get_object  window_save_files_dialog !  R> STRFREE \ 2DROP
+ 	window_save_files_dialog @  1 gtk_widget_show DROP \ DROP
+
+\ Указание  каталога  поиска
+  " ./work" >R  R@ STR@  DROP window_save_files_dialog   @ 2 gtk_file_chooser_set_current_folder   R> STRFREE   ." filechooserbutton_pribor =" . CR	
+;
+
+
+\ ----------------------------------------------------------------------------------------------------------------------------
+VARIABLE StartFreqWindowsbuilder
+VARIABLE freq_window  \ окно ввода/корректировки  диапазонов данных
+	VARIABLE freq_begin_entry
+	VARIABLE freq_end_entry
+	VARIABLE freq_step_entry
+	VARIABLE time_step_entry	
+
+	VARIABLE freq_end_combobox  
+	VARIABLE freq_step_combobox
+	VARIABLE time_step_combobox
+	VARIABLE freq_begin_combobox
+
+	VARIABLE liststore_freq_begin
+	VARIABLE liststore_time_step
+	VARIABLE liststore_freq_step
+	VARIABLE liststore_freq_end
+
+	VARIABLE  prinyat_button_freq_window
+	VARIABLE  otmena_button_freq_window
+	VARIABLE  delete_button_freq_window
+
+
+: 10xdegree  ( y х --  z ) \ степень z = y* 10** (x*3) 
+	3e F*
+	10e FSWAP F**
+	F*
+;
+
+
+:NONAME   
+( number_string ) 
+|| D: flag D: adr D: u   ||
+." prinyat_button_freq_window"
+  
+	-1  flag !	
+\	freq_begin_combobox @ 1 gtk_combo_box_get_active ." degree= " DUP . CR
+		
+	freq_begin_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		freq_begin_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 0 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		number_string @  0  TablFreqFirst    adr_data_in_number   F! \ F>D		
+\	freq_begin_combobox @ 1 gtk_combo_box_get_active ." degree= " DUP . CR
+\	10xdegree	
+\         1234e 
+\	 321e 
+\ 0 0  TablFreqFirst    adr_data_in_number  F@ F. \ F>D		
+\	2e   number_string @  0  TablFreqFirst    adr_data_in_number   F! \ F>D		
+	 number_string @  0  TablFreqFirst    adr_data_in_number  F@ F. \   number_string @ . \ F>D		
+\	0 LoadData   adr_data_in_number !
+
+	ELSE DROP 0 flag !
+	THEN
+
+	freq_end_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		freq_end_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 1 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		number_string @  1  TablFreqFirst    adr_data_in_number   F! \ F>D		
+\	freq_end_combobox @ 1 gtk_combo_box_get_active ." degree= " DUP . CR
+\	10xdegree
+	
+	ELSE DROP  0 flag !
+	THEN
+
+	freq_step_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		freq_step_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 2 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		number_string @  2  TablFreqFirst    adr_data_in_number   F! \ F>D		
+\	freq_step_combobox @ 1 gtk_combo_box_get_active ." active = " . CR
+\	10xdegree
+	
+	ELSE DROP  0 flag !
+	THEN
+
+ 	time_step_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		time_step_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 3 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		number_string @  3  TablFreqFirst    adr_data_in_number   F! \ F>D		
+\	time_step_combobox @ 1 gtk_combo_box_get_active ." active = " . CR
+\	10xdegree
+	
+	ELSE DROP  0 flag !
+	THEN
+	freq_window @  1 gtk_widget_hide DROP \ DROP
+	Refresh_freq_list	
+	0 ;  1 CELLS  CALLBACK: prinyat_button_freq_window_click
+
+:NONAME   
+." otmena_button_freq_window "
+	freq_window @  1 gtk_widget_hide DROP \ DROP
+	Refresh_freq_list
+	0 ;  1 CELLS  CALLBACK: otmena_button_freq_window_click	
+:NONAME   
+." delete_button_freq_window" 
+	number_string @ TablFreqFirst DelString
+	Refresh_freq_list
+	freq_window @  1 gtk_widget_hide DROP \ DROP
+
+	0 ;  1 CELLS  CALLBACK: delete_button_freq_window_click	
+
+:NONAME  
+."  down_button_click " 
+	number_string @  0 > 
+	IF
+	  number_string @   DUP 1- TablFreqFirst SwapString
+	number_string @ 1 - number_string !
+	THEN
+	Refresh_freq_list
+0 ;  1 CELLS  CALLBACK: down_button_click
+
+:NONAME  
+."  up_button_click " 
+	number_string @ TablFreqFirst max_datas @ < 
+	IF
+	  number_string @   DUP 1 +   TablFreqFirst SwapString
+  	number_string @ 1 + number_string !
+	THEN
+	Refresh_freq_list
+  window @   ;  1 CELLS  CALLBACK: up_button_click
+
+
+\ --------------------------------------------------------------------------
+
+
+	
+: StartFreqWindows
+\ 0 gtk_builder_new   StartFreqWindowsbuilder !
+ error  " files.glade"   >R R@ STR@  DROP  StartFreqWindowsbuilder @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
+
+\ freq_window------------------------------------------------------------------------------------------------------------------------------------------------
+  " freq_window"		     DUP >R STR@  DROP builder @ 2 gtk_builder_get_object  freq_window		    !  R> STRFREE \ 2DROP
+  " prinyat_button_freq_window" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object prinyat_button_freq_window !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] prinyat_button_freq_window_click  R@ STR@ DROP prinyat_button_freq_window  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " otmena_button_freq_window" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object otmena_button_freq_window !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] otmena_button_freq_window_click  R@ STR@ DROP otmena_button_freq_window @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+  " freq_begin_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object freq_begin_entry !    R> STRFREE \ 2DROP
+  " freq_end_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object freq_end_entry !    R> STRFREE \ 2DROP
+  " freq_step_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object freq_step_entry !    R> STRFREE \ 2DROP
+  " time_step_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object time_step_entry !    R> STRFREE \ 2DROP
+  " delete_event"  >R 0 0 0  ['] otmena_button_freq_window R@ STR@ DROP freq_window @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ 
+  " freq_begin_combobox" >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object freq_begin_combobox ! R> STRFREE  
+  " freq_end_combobox"   >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object freq_end_combobox   ! R> STRFREE  
+  " freq_step_combobox"  >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object freq_step_combobox  ! R> STRFREE  
+  " time_step_combobox"  >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object time_step_combobox  ! R> STRFREE  
+
+
+  " liststore_freq_begin" >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object liststore_freq_begin  ! R> STRFREE  
+  " liststore_freq_end"   >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object liststore_freq_end  ! R> STRFREE  
+  " liststore_freq_step"  >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object liststore_freq_step  ! R> STRFREE  
+  " liststore_time_step"  >R R@ STR@ DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object liststore_time_step  ! R> STRFREE  
+ 
+
+   iter_liststore_freq_begin   liststore_freq_begin   @ 2 gtk_list_store_append DROP
+ -1 " Hz"  >R R@ STR@ DROP 0 iter_liststore_freq_begin liststore_freq_begin  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_begin   liststore_freq_begin   @ 2 gtk_list_store_append DROP
+ -1 " kHz"  >R R@ STR@ DROP 0 iter_liststore_freq_begin liststore_freq_begin  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_begin   liststore_freq_begin   @ 2 gtk_list_store_append DROP
+ -1 " MHz"  >R R@ STR@ DROP 0 iter_liststore_freq_begin liststore_freq_begin  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_begin   liststore_freq_begin   @ 2 gtk_list_store_append DROP  			
+ -1 " GHz"  >R R@ STR@ DROP 0 iter_liststore_freq_begin liststore_freq_begin  @ 5 gtk_list_store_set DROP R> STRFREE
+
+   iter_liststore_freq_end   liststore_freq_end   @ 2 gtk_list_store_append DROP
+ -1 " Hz"  >R R@ STR@ DROP 0 iter_liststore_freq_end liststore_freq_end  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_end   liststore_freq_end   @ 2 gtk_list_store_append DROP
+ -1 " kHz"  >R R@ STR@ DROP 0 iter_liststore_freq_end liststore_freq_end  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_end   liststore_freq_end   @ 2 gtk_list_store_append DROP
+ -1 " MHz"  >R R@ STR@ DROP 0 iter_liststore_freq_end liststore_freq_end  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_end   liststore_freq_end   @ 2 gtk_list_store_append DROP  			
+ -1 " GHz"  >R R@ STR@ DROP 0 iter_liststore_freq_end liststore_freq_end  @ 5 gtk_list_store_set DROP R> STRFREE
+
+   iter_liststore_freq_step   liststore_freq_step   @ 2 gtk_list_store_append DROP
+ -1 " Hz"  >R R@ STR@ DROP 0 iter_liststore_freq_step liststore_freq_step  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_step   liststore_freq_step   @ 2 gtk_list_store_append DROP
+ -1 " kHz"  >R R@ STR@ DROP 0 iter_liststore_freq_step liststore_freq_step  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_step   liststore_freq_step   @ 2 gtk_list_store_append DROP
+ -1 " MHz"  >R R@ STR@ DROP 0 iter_liststore_freq_step liststore_freq_step  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_step   liststore_freq_step   @ 2 gtk_list_store_append DROP  			
+ -1 " GHz"  >R R@ STR@ DROP 0 iter_liststore_freq_step liststore_freq_step  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_freq_step   liststore_freq_step   @ 2 gtk_list_store_append DROP  			
+ -1 " %"  >R R@ STR@ DROP 0 iter_liststore_freq_step liststore_freq_step  @ 5 gtk_list_store_set DROP R> STRFREE
+
+   iter_liststore_time_step   liststore_time_step   @ 2 gtk_list_store_append DROP
+ -1 " mc"  >R R@ STR@ DROP 0 iter_liststore_time_step liststore_time_step  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_time_step   liststore_time_step   @ 2 gtk_list_store_append DROP
+ -1 " c"  >R R@ STR@ DROP 0 iter_liststore_time_step liststore_time_step  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_time_step   liststore_time_step   @ 2 gtk_list_store_append DROP
+ -1 " m"  >R R@ STR@ DROP 0 iter_liststore_time_step liststore_time_step  @ 5 gtk_list_store_set DROP R> STRFREE
+    iter_liststore_time_step   liststore_time_step   @ 2 gtk_list_store_append DROP  			
+ -1 " h"  >R R@ STR@ DROP 0 iter_liststore_time_step liststore_time_step  @ 5 gtk_list_store_set DROP R> STRFREE
+
+	0 freq_begin_combobox @ 2 gtk_combo_box_set_active      DROP
+	0 freq_end_combobox @ 2 gtk_combo_box_set_active        DROP
+	0 freq_step_combobox @ 2 gtk_combo_box_set_active      DROP
+	0 time_step_combobox @ 2 gtk_combo_box_set_active      DROP
+
+  " delete_button_freq_window" >R  R@ STR@  DROP StartFreqWindowsbuilder  @ 2 gtk_builder_get_object delete_button_freq_window !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] delete_button_freq_window_click  R@ STR@ DROP delete_button_freq_window @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " down_button" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object down_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] down_button_click   R@ STR@ DROP down_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " up_button" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object up_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] up_button_click   R@ STR@ DROP up_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   freq_window @  1 gtk_widget_show DROP \ DROP
+;
+
+	
+ : dialog_freq_window 
+ freq_window @  1 gtk_widget_show DROP \ DROP
+\ StartFreqWindows
+ ;
+ 

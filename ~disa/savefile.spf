@@ -1,0 +1,56 @@
+\ WIN ONLY
+\ WINAPI: GetLocalTime		KERNEL32.DLL 
+
+\ REQUIRE  tabl_kalibr  ~disa/kalibr_hype.f      \ объекты
+REQUIRE  SYSTEMTIME lib/include/facil.f
+
+
+: S+time {  sadr \ --  sadr }
+" _" sadr S+
+SYSTEMTIME wYear W@ >NUM    sadr  STR+ " _" sadr S+
+SYSTEMTIME wMonth W@ >NUM   sadr  STR+ " _" sadr S+
+SYSTEMTIME wDay W@ >NUM      sadr  STR+ " _" sadr S+
+SYSTEMTIME wHour W@ >NUM    sadr  STR+ " _" sadr S+
+SYSTEMTIME wMinute W@ >NUM   sadr  STR+ " _" sadr S+
+SYSTEMTIME wSecond W@  >NUM  sadr  STR+ 
+sadr  
+;
+	
+
+: StoFile { sadr file \ --  } 
+\  отправляю строку формата ~ас  в файл 
+ ."  " sadr STR@ TYPE ."  "
+sadr STR@ file WRITE-FILE THROW
+sadr STRFREE
+;
+: FtoFile { file } "  " file StoFile  >FNUM   ."  " 2DUP TYPE ."  " file WRITE-FILE  THROW "  " file StoFile  ; \ флоат число в выходной файл
+: DtoFile { file } "  " file StoFile   >NUM   ."  " 2DUP TYPE ."  " file  WRITE-FILE THROW "  " file StoFile  ; \ целое число в выходной файл
+
+
+: outFileCreate { sadr \ --  file } 
+ sadr STR@  ."  outFileCreate= "  TYPE ."  " 
+ sadr STR@ W/O CREATE-FILE-SHARED \ CREATE-FILE 
+ IF   ." file not created" CR  DROP 0 THEN
+  sadr STRFREE
+ ;
+
+: outFileCreateTime { sadr \ --  file } 
+sadr S+time  
+" .txt" sadr S+
+STR@  ."  " 2DUP TYPE ."  " 
+ W/O \ CREATE-FILE 
+ CREATE-FILE-SHARED 
+  IF   ." file not created" CR  DROP 0 THEN \ THROW  
+ sadr STRFREE
+ ;
+
+ 
+ 
+ : CRtoFile " {CRLF}" SWAP StoFile ;
+
+
+: outFileClose  { file \ -- }
+file FLUSH-FILE THROW
+file  CLOSE-FILE THROW
+;
+

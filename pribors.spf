@@ -1,0 +1,86 @@
+ REQUIRE FIND-FILES ~ac\FINDFILE.F         \ поиск файлов
+ REQUIRE AddNode ~ac\STR_LIST.F            \ список
+
+
+\ VARIABLE  Interface
+\ кодировка допускаемого интерфейса \ BIN 
+\ 1 -COMPORT
+\ 10 - TCP\IP
+\ 100 - GPIB NI
+
+
+
+ 
+ 
+VARIABLE pribors_builder 
+VARIABLE pribors_window
+VARIABLE name_label
+
+VARIABLE pribor_name_liststore
+VARIABLE pribor_name_combobox
+  0 , HERE  64 ALLOT  VALUE iter_pribor_name_liststore
+
+VARIABLE interface_treeview
+VARIABLE interface_liststore
+  0 , HERE  64 ALLOT  VALUE iter_interface_liststore
+
+VARIABLE comm_combobox
+VARIABLE comm_liststore
+  0 , HERE  64 ALLOT  VALUE iter_comm_liststore
+
+
+: addPriborListWin \ добавление приборов в  список на экране
+\    iter_pribor_name_liststore   pribor_name_liststore   @ 2 gtk_list_store_append DROP
+\ 6 - STR>S \ STYPE
+\ -1 SWAP  >R R@ STR@ DROP 0 iter_pribor_name_liststore pribor_name_liststore  @ 5 gtk_list_store_set DROP R> STRFREE
+\ TYPE CR ListPribor
+ListPribor number?  0 > IF
+	ListPribor number?  0 
+	DO
+		iter_pribor_name_liststore   pribor_name_liststore   @ 2 gtk_list_store_append DROP
+		I ListPribor take ?DUP
+		IF ^ Name  DUP ASCIIZ> TYPE
+			1 SWAP  0 iter_pribor_name_liststore pribor_name_liststore  @ 5 gtk_list_store_set DROP 
+		THEN
+	LOOP
+THEN
+;
+
+: RefreshInterface_pribor
+|| D: data ||
+	freq_liststore @ 1 gtk_list_store_clear	 DROP
+;
+
+: StartPribor  { adr u  \  -- } 
+\ || D: adr D: u || u ! adr !
+	0 gtk_builder_new   pribors_builder !
+	error  " pribors.glade"   >R R@ STR@  DROP  pribors_builder @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
+ 	" pribors_window"  >R R@ STR@  DROP pribors_builder @ 2 gtk_builder_get_object pribors_window !  R> STRFREE \ 2DROP
+
+  " name_label"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object name_label   ! R> STRFREE  
+   adr u  STR>S >R R@ STR@ DROP name_label @ 2 gtk_label_set_text DROP R> STRFREE  
+
+ 	pribors_window @  1 gtk_widget_show DROP \ DROP
+
+  " pribor_name_combobox"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object pribor_name_combobox   ! R> STRFREE  
+  " pribor_name_liststore" >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object pribor_name_liststore  ! R> STRFREE  
+      pribor_name_liststore  @ 1 gtk_list_store_clear DROP
+      
+  \ читаем список приборов ( каталогов),\ создаем список и выводим его на экран
+ \    S" .\pribors\*.pnast" ['] 
+ addPriborListWin \  FIND-FILES
+
+  " interface_treeview"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object interface_treeview   ! R> STRFREE  
+  " interface_liststore" >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object interface_liststore  ! R> STRFREE  
+
+  " comm_combobox"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object comm_combobox ! R> STRFREE  
+  " comm_liststore" >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object comm_liststore ! R> STRFREE  
+
+    iter_comm_liststore  comm_liststore   @ 2 gtk_list_store_append DROP
+ -1 " COM PORT" >R R@ STR@ DROP 0 iter_comm_liststore  comm_liststore @ 5 gtk_list_store_set DROP R> STRFREE
+
+    iter_comm_liststore  comm_liststore   @ 2 gtk_list_store_append DROP
+ -1 " TCP/IP" >R R@ STR@ DROP 0 iter_comm_liststore  comm_liststore @ 5 gtk_list_store_set DROP R> STRFREE
+
+
+;

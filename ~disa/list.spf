@@ -1,0 +1,76 @@
+
+128 VALUE  Max_num_pribor \ максимально екол-во приборов в программе
+
+REQUIRE  HYPE ~day\hype3\hype3.f
+REQUIRE  N_S_PickUpWord ~disa\dopoln.f
+
+CLASS Listmetod \ список всех приборов
+	CELL DEFS  datas \ ссылка на данные
+	CELL DEFS num_datas  \ количество загруженных ячеек
+	CELL DEFS max_datas  \ всего ячеек
+dispose: 
+	datas @ FREE THROW  
+;
+
+init:
+	  Max_num_pribor  max_datas !
+	  Max_num_pribor   1 +  CELLS    ALLOCATE THROW   datas ! \ готовим место под список приборов
+;
+
+: add  \ добавить элемент в конец
+	datas @ num_datas @ CELLS + !
+	num_datas @ max_datas @ < \ защита от переполнения
+	IF 
+		num_datas @ 1 + num_datas !
+	ELSE max_datas @ num_datas  ! THEN
+ ; 
+
+: del ( -- flag ) \ удалить последний элемент
+	num_datas 0 > \ защита от отрицательных значений кол-ва
+	IF
+		num_datas @ 1 - num_datas !
+	ELSE 0 num_datas ! THEN 
+;
+
+: adr (  n -- adr  | 0 )
+|| D: number || \  получить адрес элемента
+	number  !	
+	
+	number @ 0 <  	number @ max_datas @ > OR  \  номер в пределах таблички
+	IF 0
+	ELSE 	number @   CELLS  datas @ +
+	THEN
+;
+: take   adr  DUP IF @ ELSE THEN ;
+
+: number? num_datas @ ; \ кол-во элементов
+: clear 0 num_datas ! ;
+
+: made ( ' word -- ) \ выполнить слово "word" над каждым элементом списка
+|| D: word ||
+word !
+	num_datas @  \ max_datas @ MIN  
+	0 >  
+	IF
+		 num_datas @ 0 
+		DO
+			I adr  @ word  @ EXECUTE
+		LOOP
+	THEN 
+
+;
+
+: see   \ вывести список в консоль
+\ || D: word ||
+\ word !
+\	num_datas @  \ max_datas @ MIN  
+\	0 >  
+\	IF
+\		 num_datas @ 0 
+\		DO
+\			I adr  @ .
+\		LOOP
+\	THEN 
+['] . made
+;
+ ;CLASS

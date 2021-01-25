@@ -1,0 +1,8 @@
+Load jds6600...
+.....Load jds6600
+jds6600
+Load SMB100...
+.....Load smb100
+smb100
+ pribor_button_click + gen_prib_window_button_click jds6600smb100+++++++++++++++ pribor_button_click +++ pribor_button_click +++
+Exit 
