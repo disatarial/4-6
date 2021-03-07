@@ -1,0 +1,10 @@
+ 1 gen_prib_obj     !
+ 1 ampl_prib_obj    !
+ 1 otvet_prib_obj   !
+ 1 powm_prib_obj    !
+ 1 injec_prib_obj   !
+ 1 koltco_prib_obj  !	
+ 1 tokmetr_prib_obj !
+ 
+  " ./pribors/smb100/1000"  gen_prib_file  LOAD_TO_BUFER
+   

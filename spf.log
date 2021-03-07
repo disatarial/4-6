@@ -4,5 +4,12 @@ jds6600
 Load SMB100...
 .....Load smb100
 smb100
- pribor_button_click + gen_prib_window_button_click jds6600smb100+++++++++++++++ pribor_button_click +++ pribor_button_click +++
+ datas @ = 0 
+ Refresh_freq_list, num_datas = 0 
+
+./pribors/smb100/1000
+ pribor_button_click 
+FileDialogFlag = runcicle_trans_to_pribors   
+ gen_prib_window_button_click =  jds6600smb100./pribors/smb100/1000/nastr.txt loads nastr.txt 
+......
 Exit 

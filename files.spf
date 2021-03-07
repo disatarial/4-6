@@ -1,0 +1,127 @@
+
+VECT FileDialogAction \  связь файловых диалогов с программой
+VECT FileDialogFolder \  установка каталога в диалоге
+
+VARIABLE builder_dialog  \ ? структура  gtk
+
+
+\ ==================================================================================================
+VARIABLE window_open_files_dialog  \ ? окно диалога открытия  файла
+\ ==================================================================================================
+VARIABLE  otmena_button_open_files_dialog
+VARIABLE  open_button_open_files_dialog
+
+: window_open_files_dialog_destroy   CR ." Exit "    	window_open_files_dialog  @ 1 gtk_widget_destroy DROP  ;
+
+:NONAME    
+window_open_files_dialog_destroy 
+1 ;  1 CELLS  CALLBACK:     on_window_open_files_dialog_destroy
+
+:NONAME   
+." otmena_button_open_files_dialog"
+\ 	window_open_files_dialog @  1 gtk_widget_hide DROP \ DROP
+window_open_files_dialog_destroy
+	0 ;  1 CELLS  CALLBACK: otmena_button_open_files_dialog_click 
+	
+:NONAME   
+|| D: file  ||
+." open_button_open_files_dialog"
+	window_open_files_dialog @  1 gtk_file_chooser_get_filename     file !
+	file @	IF \ название файла в наличии
+ 	file @ ASCIIZ>  STR>S  file ! \ TYPE CR
+
+	 \	4 file @ TablFreqFirst LoadFile
+	file @ FileDialogAction
+
+	file @ STRFREE
+		
+  window_open_files_dialog_destroy
+	THEN
+\	Refresh_freq_list
+
+	0 ;  1 CELLS  CALLBACK: open_button_open_files_dialog_click 
+
+
+: open_files_dialog
+
+  0 gtk_builder_new   builder_dialog  !
+  gtkerror  " files.glade"  >R R@ STR@  DROP  builder_dialog @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
+ 
+\ window_open_files_dialog------------------------------------------------------------------------------------------------------------------------------------------------
+  " window_open_files_dialog"  DUP >R STR@  DROP builder_dialog @ 2 gtk_builder_get_object  window_open_files_dialog !  R> STRFREE \ 2DROP
+ " destroy"  >R 0 0 0  ['] on_window_open_files_dialog_destroy  R@ STR@ DROP window_open_files_dialog @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP	
+
+
+  " otmena_button_open_files_dialog" >R  R@ STR@  DROP builder_dialog @ 2 gtk_builder_get_object otmena_button_open_files_dialog !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] otmena_button_open_files_dialog_click  R@ STR@ DROP otmena_button_open_files_dialog  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " open_button_open_files_dialog" >R  R@ STR@  DROP builder_dialog @ 2 gtk_builder_get_object open_button_open_files_dialog !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] open_button_open_files_dialog_click  R@ STR@ DROP open_button_open_files_dialog @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+
+\ " ./work/" 
+FileDialogFolder >R  R@ STR@  DROP window_open_files_dialog  @ 2 gtk_file_chooser_set_current_folder   R> STRFREE   ." filechooserbutton_pribor =" . CR	
+ 
+ window_open_files_dialog @  1 gtk_widget_show DROP \ DROP
+
+;
+
+\ ==================================================================================================
+
+VARIABLE window_save_files_dialog  \ ? окно диалога сохранения файла
+\ ==================================================================================================
+
+
+VARIABLE  otmena_button_save_files_dialog
+VARIABLE  save_button_save_files_dialog
+
+: window_save_files_dialog_destroy   CR ." Exit "    	window_save_files_dialog  @ 1 gtk_widget_destroy DROP  ;
+
+:NONAME    
+window_save_files_dialog_destroy 
+1 ;  1 CELLS  CALLBACK:     on_window_save_files_dialog_destroy
+
+:NONAME   
+." otmena_button_save_files_dialog"
+\ 	window_open_files_dialog @  1 gtk_widget_hide DROP \ DROP
+window_save_files_dialog_destroy
+	0 ;  1 CELLS  CALLBACK: otmena_button_save_files_dialog_click 
+	
+:NONAME   
+|| D: file  ||
+." save_button_save_files_dialog"
+	window_save_files_dialog @  1 gtk_file_chooser_get_filename     file !
+	file @	IF \ название файла в наличии
+ 	file @ ASCIIZ>  STR>S    file ! \ TYPE CR
+\	file @ TablFreqFirst SaveData
+\	file @ FileDialogAction
+	file @ FileDialogAction
+	file @ STRFREE
+	
+	\ window_save_files_dialog @  1 gtk_widget_hide DROP \ DROP
+	window_save_files_dialog_destroy
+	THEN
+\	Refresh_freq_list
+	0 ;  1 CELLS  CALLBACK: save_button_save_files_dialog_click
+
+
+: save_files_dialog
+
+  0 gtk_builder_new   builder_dialog  !
+  gtkerror  " files.glade"  >R R@ STR@  DROP  builder_dialog @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
+ 
+\ window_open_files_dialog------------------------------------------------------------------------------------------------------------------------------------------------
+  " window_save_files_dialog"  DUP >R STR@  DROP builder_dialog @ 2 gtk_builder_get_object  window_save_files_dialog !  R> STRFREE \ 2DROP
+ " destroy"  >R 0 0 0  ['] on_window_save_files_dialog_destroy  R@ STR@ DROP window_save_files_dialog @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP	
+
+
+  " otmena_button_save_files_dialog" >R  R@ STR@  DROP builder_dialog @ 2 gtk_builder_get_object otmena_button_open_files_dialog !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] otmena_button_save_files_dialog_click  R@ STR@ DROP otmena_button_open_files_dialog  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " save_button_save_files_dialog" >R  R@ STR@  DROP builder_dialog @ 2 gtk_builder_get_object open_button_open_files_dialog !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] save_button_save_files_dialog_click  R@ STR@ DROP open_button_open_files_dialog @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+\ " ./work/" 
+FileDialogFolder >R  R@ STR@  DROP window_save_files_dialog  @ 2 gtk_file_chooser_set_current_folder   R> STRFREE   ." filechooserbutton_pribor =" . CR	
+ 
+ window_save_files_dialog @  1 gtk_widget_show DROP \ DROP
+
+;

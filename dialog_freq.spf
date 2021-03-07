@@ -1,0 +1,237 @@
+
+
+\ ==================================================================================================
+VARIABLE StartFreqWindowsbuilder \ ? окно диалога открытия  файла
+
+VARIABLE freq_window  \ окно ввода/корректировки  диапазонов данных
+	VARIABLE dialog_freq_begin_entry
+	VARIABLE dialog_freq_end_entry
+	VARIABLE dialog_freq_step_entry
+	VARIABLE dialog_time_step_entry	
+
+	VARIABLE freq_end_button  
+	VARIABLE freq_step_button
+	VARIABLE time_step_button
+	VARIABLE freq_begin_button
+
+ 
+	VARIABLE prinyat_button_freq_window
+	VARIABLE  otmena_button_freq_window
+	VARIABLE  delete_button_freq_window
+	VARIABLE      up_button_freq_window
+	VARIABLE    down_button_freq_window
+	
+	VARIABLE freq_begin_togglebutton_Hz
+	VARIABLE freq_begin_togglebutton_kHz
+	VARIABLE freq_begin_togglebutton_MHz
+	VARIABLE freq_begin_togglebutton_GHz
+
+	VARIABLE freq_end_togglebutton_Hz
+	VARIABLE freq_end_togglebutton_kHz
+	VARIABLE freq_end_togglebutton_MHz
+	VARIABLE freq_end_togglebutton_GHz
+	
+	VARIABLE freq_step_togglebutton_Hz
+	VARIABLE freq_step_togglebutton_kHz
+	VARIABLE freq_step_togglebutton_MHz
+	VARIABLE freq_step_togglebutton_GHz
+	VARIABLE freq_step_togglebutton_proc
+	
+	VARIABLE time_step_togglebutton_mc
+	VARIABLE time_step_togglebutton_s
+	VARIABLE time_step_togglebutton_min
+\ =============================
+ 
+ 
+:NONAME	 0 ;  1 CELLS  CALLBACK:     
+:NONAME	 0 ;  1 CELLS  CALLBACK:   
+	
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_begin_togglebutton_Hz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_begin_togglebutton_kHz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_begin_togglebutton_MHz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_begin_togglebutton_GHz_click
+
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_end_togglebutton_Hz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_end_togglebutton_kHz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_end_togglebutton_MHz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_end_togglebutton_GHz_click
+	
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_Hz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_kHz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_MHz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_GHz_click
+:NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_proc_click
+	
+:NONAME	0 ;  1 CELLS  CALLBACK: time_step_togglebutton_mc_click
+:NONAME	0 ;  1 CELLS  CALLBACK: time_step_togglebutton_s_click
+:NONAME	0 ;  1 CELLS  CALLBACK: time_step_togglebutton_min_click
+
+: 10xdegree  ( y х --  z ) \ степень z = y* 10** (x*3) 
+	3e F*
+	10e FSWAP F**
+	F*
+;
+: StartFreqWindowsdestroy freq_window  @ 1 gtk_widget_destroy DROP  ; 
+
+
+:NONAME   
+|| D: flag D: adr D: u ||
+-1 flag !
+." prinyat_button_freq_window"
+	dialog_freq_begin_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		dialog_freq_begin_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 0 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		FTO dialog_freq_begin_value
+	\	3 TO FileDialogFlag
+	ELSE DROP 0 flag !
+	THEN
+	dialog_freq_end_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		dialog_freq_end_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 0 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		FTO dialog_freq_end_value
+	\	3 TO FileDialogFlag
+	ELSE DROP 0 flag !
+	THEN
+	
+	dialog_freq_step_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		dialog_freq_step_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 0 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		FTO dialog_freq_step_value
+	\	3 TO FileDialogFlag
+	ELSE DROP 0 flag !
+	THEN
+	
+	dialog_time_step_entry  @ 1 gtk_entry_get_text_length   DUP 0 > 
+	flag @ AND
+	IF
+		dialog_time_step_entry @ 1 gtk_entry_get_text     adr !   u ! \ adr u 	
+		adr @ u @ ."  NUMBER 0 : "  TYPE ."  " 			
+		adr @ u  @ STR>FLOAT      flag !  \ 1e6 F*  \ перевели в Гц !
+		FDUP  F. CR
+		FTO dialog_time_step_value
+	\	3 TO FileDialogFlag
+	ELSE DROP 0 flag !
+	THEN
+runcicle_prinyat_freq_window TO FileDialogFlag  
+StartFreqWindowsdestroy
+	0 ;  1 CELLS  CALLBACK: prinyat_button_freq_window_click
+
+:NONAME   
+." otmena_button_freq_window "
+StartFreqWindowsdestroy
+	0 ;  1 CELLS  CALLBACK: otmena_button_freq_window_click	
+
+:NONAME   
+." delete_button_freq_window"
+runcicle_delete_freq_window TO FileDialogFlag 
+StartFreqWindowsdestroy
+\	freq_window @  1 gtk_widget_hide DROP \ DROP
+	0 ;  1 CELLS  CALLBACK: delete_button_freq_window_click	
+
+:NONAME  
+."  down_button_click " 
+
+0 ;  1 CELLS  CALLBACK: up_button_freq_window_click
+
+:NONAME  
+."  up_button_click " 
+  0  ;  1 CELLS  CALLBACK: down_button_freq_window_click
+
+
+:NONAME  
+."  destroy window_open_files_dialog " 
+StartFreqWindowsdestroy
+  0  ;  1 CELLS  CALLBACK: freq_window_destroy
+	
+:NONAME  
+."  freq_step_togglebutton_Hz_click " 
+  0  ;  1 CELLS  CALLBACK: freq_step_togglebutton_Hz_click
+
+:NONAME  
+."  freq_step_togglebutton_proc_click " 
+  0  ;  1 CELLS  CALLBACK: freq_step_togglebutton_proc_click
+
+
+
+: freq_window_dialog 
+|| D: sadr ||
+  0 gtk_builder_new   StartFreqWindowsbuilder  !
+  gtkerror  " win_freq.glade"  >R R@ STR@  DROP  StartFreqWindowsbuilder @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
+ 
+  " freq_window" DUP >R STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object  freq_window		    !  R> STRFREE \ 2DROP
+   " destroy"  >R 0 0 0  ['] freq_window_destroy  R@ STR@ DROP freq_window @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+  " prinyat_button_freq_window" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object prinyat_button_freq_window !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] prinyat_button_freq_window_click  R@ STR@ DROP prinyat_button_freq_window  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " otmena_button_freq_window" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object otmena_button_freq_window !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] otmena_button_freq_window_click  R@ STR@ DROP otmena_button_freq_window @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+  " freq_begin_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object dialog_freq_begin_entry !    R> STRFREE \ 2DROP
+  " freq_end_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder   @ 2 gtk_builder_get_object dialog_freq_end_entry !    R> STRFREE \ 2DROP
+  " freq_step_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder  @ 2 gtk_builder_get_object dialog_freq_step_entry !    R> STRFREE \ 2DROP
+  " time_step_entry" >R  R@ STR@  DROP StartFreqWindowsbuilder  @ 2 gtk_builder_get_object dialog_time_step_entry !    R> STRFREE \ 2DROP
+
+  " freq_step_togglebutton_Hz"   >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object  freq_step_togglebutton_Hz   !    R> STRFREE \ 2DROP
+  " freq_step_togglebutton_proc" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object  freq_step_togglebutton_proc !    R> STRFREE \ 2DROP
+
+ \ " clicked"  >R 0 0 0  ['] freq_step_togglebutton_Hz_click   R@ STR@ DROP freq_step_togglebutton_Hz  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_step_togglebutton_proc_click R@ STR@ DROP freq_step_togglebutton_proc  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " delete_button_freq_window" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object delete_button_freq_window !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] delete_button_freq_window_click R@ STR@ DROP delete_button_freq_window  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+\ freq_step_togglebutton_Hz 
+\ freq_step_togglebutton_proc
+
+ \ "  freq_begin_togglebutton_Hz" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object  freq_begin_togglebutton_Hz !    R> STRFREE \ 2DROP
+ \ "  freq_begin_togglebutton_kHz" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object  freq_begin_togglebutton_kHz !    R> STRFREE \ 2DROP
+ \ "  freq_begin_togglebutton_MHz" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object  freq_begin_togglebutton_MHz !    R> STRFREE \ 2DROP
+ \ "  freq_begin_togglebutton_GHz" >R  R@ STR@  DROP StartFreqWindowsbuilder @ 2 gtk_builder_get_object  freq_begin_togglebutton_GHz !    R> STRFREE \ 2DROP
+
+ \ " clicked"  >R 0 0 0  ['] freq_begin_togglebutton_Hz_click   R@ STR@ DROP freq_begin_togglebutton_Hz  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_begin_togglebutton_kHz_click  R@ STR@ DROP freq_begin_togglebutton_kHz @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_begin_togglebutton_MHz_click  R@ STR@ DROP freq_begin_togglebutton_MHz @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_begin_togglebutton_GHz_click  R@ STR@ DROP freq_begin_togglebutton_GHz @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+ \ " clicked"  >R 0 0 0  ['] freq_end_togglebutton_Hz_click   R@ STR@ DROP freq_end_togglebutton_Hz  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_end_togglebutton_kHz_click  R@ STR@ DROP freq_end_togglebutton_kHz @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_end_togglebutton_MHz_click  R@ STR@ DROP freq_end_togglebutton_MHz @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_end_togglebutton_GHz_click  R@ STR@ DROP freq_end_togglebutton_GHz @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+ \ " clicked"  >R 0 0 0  ['] freq_step_togglebutton_Hz_click   R@ STR@ DROP freq_step_togglebutton_Hz    @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_step_togglebutton_kHz_click  R@ STR@ DROP freq_step_togglebutton_kHz   @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_step_togglebutton_MHz_click  R@ STR@ DROP freq_step_togglebutton_MHz   @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_step_togglebutton_GHz_click  R@ STR@ DROP freq_step_togglebutton_GHz   @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] freq_step_togglebutton_proc_click R@ STR@ DROP freq_step_togglebutton_proc  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+ \ " clicked"  >R 0 0 0  ['] time_step_togglebutton_mc_click   R@ STR@ DROP time_step_togglebutton_mc  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] time_step_togglebutton_s_click    R@ STR@ DROP time_step_togglebutton_s   @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ \ " clicked"  >R 0 0 0  ['] time_step_togglebutton_min_click  R@ STR@ DROP time_step_togglebutton_min @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+ 
+ ."  dialog_freq_begin_value = " dialog_freq_begin_value F. CR
+ ."  dialog_freq_end_value   = " dialog_freq_end_value F. CR 
+ ."  dialog_freq_step_value  = " dialog_freq_step_value F. CR
+ ."  dialog_time_step_value  = " dialog_time_step_value F. CR
+ 
+  dialog_freq_begin_value  >FNUM  STR>S    DUP sadr ! STR@ DROP  dialog_freq_begin_entry @ 2 gtk_entry_set_text DROP  sadr  @ STRFREE
+  dialog_freq_end_value    >FNUM  STR>S    DUP sadr ! STR@ DROP  dialog_freq_end_entry	 @ 2 gtk_entry_set_text DROP  sadr  @ STRFREE
+  dialog_freq_step_value   >FNUM  STR>S    DUP sadr ! STR@ DROP  dialog_freq_step_entry  @ 2 gtk_entry_set_text DROP  sadr  @ STRFREE
+  dialog_time_step_value   >FNUM  STR>S    DUP sadr ! STR@ DROP  dialog_time_step_entry  @ 2 gtk_entry_set_text DROP  sadr  @ STRFREE
+
+
+
+ 		  	
+
+ freq_window @  1 gtk_widget_show DROP \ DROP
+; 

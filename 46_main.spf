@@ -1,0 +1,430 @@
+STARTLOG
+
+REQUIRE CAPI: lib/win/api-call/capi.f
+
+
+
+ 
+REQUIRE gtk_init   gtk-api.spf
+
+ REQUIRE CASE  lib/ext/case.f
+ REQUIRE WildCMP-U ~pinka/lib/mask.f \ \ сравнение строки и маски, для  проверки ответа оборудования
+ REQUIRE objLocalsSupport ~day/hype3/locals.f \ локальные переменные
+ REQUIRE AddNode ~ac\STR_LIST.F            \ список
+ REQUIRE STR@ ~ac\str5.f                    \ работа с динамическими строками
+
+ REQUIRE  tabl_kalibr  ~disa/kalibr_hype.f      \ объекты
+ REQUIRE  dBuV->V  ~disa/algoritm.f             \ различные алгоритмы
+ REQUIRE  F. ~disa\dopoln.f
+
+ REQUIRE FIND-FILES ~ac\FINDFILE.F         \ поиск файлов
+
+
+ \ загруженная  калибровка для настройки
+tabl_kalibr NEW TablFreqFirst  \ 
+ 4 VALUE  NumRowTablFreqFirst  \ количество столбцов
+ VECT Refresh_freq_list
+
+
+	
+\ оболочка для пользователя
+VARIABLE pargv
+VARIABLE pargs
+VARIABLE builder
+HERE 0 , 3  CELLS  ALLOT VALUE gtkerror    \ сюда скидывать номер ошибки 
+
+\ перенос информации из диалога частот	
+	0e FVALUE dialog_freq_begin_value
+	0e FVALUE dialog_freq_end_value
+	0e FVALUE dialog_freq_step_value
+	0e FVALUE dialog_time_step_value
+ 
+
+HERE 0 , 512 ALLOT VALUE DialogFileName \ имя файла для диалогов
+0 VALUE FileDialogFlag
+\ управление потоком работающим с таблицами
+
+1 CONSTANT runcicle_createtable
+2 CONSTANT runcicle_loadfile
+3 CONSTANT runcicle_savefile
+4 CONSTANT runcicle_prinyat_freq_window
+5 CONSTANT runcicle_add_freq_window
+6 CONSTANT runcicle_delete_freq_window
+7 CONSTANT runcicle_trans_to_freq_windows
+8 CONSTANT runcicle_trans_to_pribors
+
+\ VECT FileDialogAction \ Функция связи файловых диалогов с программой
+\ VECT FileDialogFolder \  установка каталога в диалоге
+
+
+REQUIRE Listmetod ~disa\list.spf
+Listmetod NEW ListPribor \ полный список приборов
+
+
+REQUIRE window_open_files_dialog files.spf
+REQUIRE StartFreqWindowsbuilder dialog_freq.spf
+
+REQUIRE prib_window_start pribors.spf
+
+
+
+VARIABLE window \ главное окно
+	VARIABLE begin_button \ кнопка старт
+	VARIABLE pause_button \ кнопка пауза
+	VARIABLE stop_button  \ кнопка стоп
+	\ окно диапазонов 
+	VARIABLE freq_treeview
+	VARIABLE freq_liststore
+	 0 , HERE  64 ALLOT  VALUE  iter_freq_liststore
+
+	VARIABLE load_button \  загрузитьтабличку с диапазонами
+	VARIABLE save_button \  сохранить табличку с диапазонами
+	VARIABLE add_button \ добавить диапазон
+	VARIABLE down_button \ ??  переставить вверх диапазон
+	VARIABLE up_button   \ ?? переставить вниз диапазон
+	VARIABLE  pribor_button \ настройка приборов
+
+	\  выбор калибровки
+	VARIABLE kals_filechooserbutton
+ 	VARIABLE  main_beg_freq_combobox
+	VARIABLE main_beg_freq_liststore
+	0 , HERE  64 ALLOT  VALUE iter_main_beg_freq_liststore
+
+VARIABLE number_string \ тут считаем  строчкe для загрузки в таблицу из файла
+
+ \ спипос оборудования
+ 
+
+: addOnePriborList ( adr u -- ) 
+|| D: s  D: flag || 
+0 flag !
+ " .\scrprib\" s !
+ s @ STR+  
+ s @ STR@   INCLUDE-PROBE  
+0= IF
+	NewObj   \ obj ! obj @ 
+	ListPribor add
+	ListPribor number?  \ . CR
+	 1 -  ListPribor take  ^ Name ASCIIZ>  TYPE CR
+ELSE
+."   ERROR: pribor not included  " CR -1 flag ! 
+THEN
+  s @ STRFREE
+ \ flag 
+;
+
+
+
+: AddAllPriborList \ добавление приборов в полный список приборов
+	S" .\scrprib\*.prib" [']   addOnePriborList   FIND-FILES
+;
+
+
+: loadTablFreqFirst  ."  loadTablFreqFirst"  CR
+|| D: file ||
+file !
+CR file @ STR@ TYPE CR
+file @ STR@ DialogFileName  SWAP 1 + CMOVE 
+runcicle_loadfile TO FileDialogFlag
+ 
+;
+	
+: saveTablFreqFirst  ."  saveTablFreqFirst " CR
+|| D: file ||
+file !
+CR file @ STR@ TYPE CR
+file @ STR@ DialogFileName  SWAP 1 + CMOVE 
+
+runcicle_savefile TO FileDialogFlag
+ 
+;
+	
+: WorkFolder " ./work/" ; 
+
+:NONAME  
+."  load_button_click" 
+['] loadTablFreqFirst TO FileDialogAction
+[']  WorkFolder TO FileDialogFolder
+	open_files_dialog
+	0 ;  1 CELLS  CALLBACK: load_button_click
+
+:NONAME  
+."  save_button_click" 
+['] saveTablFreqFirst TO FileDialogAction
+[']  WorkFolder TO FileDialogFolder
+	save_files_dialog
+	0 ;  1 CELLS  CALLBACK: save_button_click
+	
+:NONAME  
+."  add_button_click "
+\	TablFreqFirst Add_num_datas
+ runcicle_add_freq_window TO FileDialogFlag 
+	0 ;  1 CELLS  CALLBACK: add_button_click
+	
+:NONAME  
+."  begin_button_click " 
+	0 ;  1 CELLS  CALLBACK: begin_button_click
+
+:NONAME  
+."  pause_button_click " 
+	0 ;  1 CELLS  CALLBACK: pause_button_click
+
+:NONAME  
+."  stop_button_click " \
+	0 ;  1 CELLS  CALLBACK: stop_button_click
+
+:NONAME  
+."  pribor_button_click " 
+	runcicle_trans_to_pribors TO  FileDialogFlag 
+	prib_window_start
+	0 ;  1 CELLS  CALLBACK: pribor_button_click
+
+
+: act_on_window_destroy    CR ." Exit " 0 gtk_main_quit DROP     BYE ;
+
+
+:NONAME  
+."  freq_treeview_click " 
+|| D: column D: path D: tree_view  D: model   ||
+tree_view  ! path !  column !
+ 	freq_treeview  @ 1 gtk_tree_view_get_model    model ! 
+ 	path @ iter_freq_liststore model @ 3   gtk_tree_model_get_iter DROP \ (model, &iter, path_string)
+	iter_freq_liststore model @ 2 gtk_tree_model_get_string_from_iter    ASCIIZ> STR>S    \ STYPE ."  "
+	S>FLOAT DROP F>DS  
+	
+	number_string !	
+\	I 1  TablFreqFirst    adr_data_in_number  F@ >FNUM  	FTO dialog_freq_begin_value 
+	runcicle_trans_to_freq_windows   TO FileDialogFlag 
+
+	."  string = " number_string @  . FileDialogFlag . CR
+	500 PAUSE
+	freq_window_dialog
+	column  @ path @ tree_view @	window @   ;  3 CELLS  CALLBACK: freq_treeview_click
+
+
+:NONAME \  
+|| D: data ||
+	freq_liststore @ 1 gtk_list_store_clear	 DROP
+	TablFreqFirst    num_datas @  ."  Refresh_freq_list, num_datas = " DUP . CR
+	DUP 0 > IF
+		0 
+		DO
+\		0 iter_freq_liststore  freq_liststore  @  3 gtk_list_store_insert DROP   			
+\		 -1 1 0 iter_freq_liststore freq_liststore  @ 5 gtk_list_store_set DROP 
+		 
+			iter_freq_liststore freq_liststore  @ 2 gtk_list_store_append DROP
+			-1   I 0 iter_freq_liststore freq_liststore   @ 5 gtk_list_store_set DROP 
+			I 0  TablFreqFirst    adr_data_in_number  F@ >FNUM STR>S data ! \ F>D		
+		 	-1 data @ STR@ DROP  1 iter_freq_liststore freq_liststore   @ 5 gtk_list_store_set DROP data @ STRFREE
+
+			I 1  TablFreqFirst    adr_data_in_number  F@ >FNUM STR>S data ! \ F>D		
+		 	-1 data @ STR@ DROP  2 iter_freq_liststore freq_liststore   @ 5 gtk_list_store_set DROP data @ STRFREE
+
+			I 2  TablFreqFirst    adr_data_in_number  F@ >FNUM STR>S data ! \ F>D		
+		 	-1 data @ STR@ DROP  3 iter_freq_liststore freq_liststore   @ 5 gtk_list_store_set DROP data @ STRFREE
+			
+			I 3  TablFreqFirst    adr_data_in_number  F@ >FNUM STR>S data ! \ F>D		
+		 	-1 data @ STR@ DROP  4 iter_freq_liststore freq_liststore   @ 5 gtk_list_store_set DROP data @ STRFREE
+
+		LOOP
+	ELSE DROP THEN
+	TablFreqFirst SeeDatas
+ 
+;  TO Refresh_freq_list 
+ 
+
+:NONAME  act_on_window_destroy  
+	0 ;  1 CELLS  CALLBACK: on_window_destroy 
+	
+ :NONAME 
+ || D: file ||
+ ." ."
+  1 ;  1 CELLS  CALLBACK:  timer_ticket 
+ 
+ 
+: work_windows \ { \ I f fdata node  lfname fname[ 32 ] -- }
+  pargv pargs  2  gtk_init  DROP \ 2DROP 
+  0 gtk_builder_new   builder !
+  gtkerror  " 46.glade"  >R R@ STR@  DROP  builder @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
+   \ Вот тут теоретически может отработать автоподсоединение.. но как взаимодействуют данные из формы с переменными- мне неизвестно 
+   \ builder.connect_signals(WinElectro())
+   \ поэтому надежней подсоединить все вручную
+  " main_window"  >R R@ STR@  DROP builder @ 2 gtk_builder_get_object window !  R> STRFREE \ 2DROP
+
+
+    \ ДЕЙСТВО ЗАКРЫТИЕ ПРОГРАММЫ
+   " destroy"  >R 0 0 0  ['] on_window_destroy  R@ STR@ DROP window @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " begin_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object begin_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] begin_button_click   R@ STR@ DROP begin_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " pause_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object pause_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] pause_button_click   R@ STR@ DROP pause_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " stop_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object stop_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] stop_button_click   R@ STR@ DROP stop_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+\ таблички для частот
+    " freq_treeview"  >R R@ STR@ DROP builder @ 2 gtk_builder_get_object freq_treeview  ! R> STRFREE
+    " freq_liststore" >R R@ STR@ DROP builder @ 2 gtk_builder_get_object freq_liststore ! R> STRFREE  
+ \   iter_freq_liststore freq_liststore  @ 2 gtk_list_store_append DROP
+
+\  " cursor-changed"
+\  >R 0 0 0  ['] freq_treeview_click   R@ STR@ DROP freq_treeview @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+ " row-activated"
+   >R 0 0 0  ['] freq_treeview_click   R@ STR@ DROP freq_treeview @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+\ " row-activated"    >R 0 0 0  ['] treeview_param_prib_click R@ STR@ DROP treeview_param_kal @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+
+
+   " load_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object load_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] load_button_click   R@ STR@ DROP load_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " save_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object save_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] save_button_click   R@ STR@ DROP save_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " add_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object add_button !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] add_button_click   R@ STR@ DROP add_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+   " pribor_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object pribor_button !    R> STRFREE \ 2DROP
+   " clicked"  >R 0 0 0  ['] pribor_button_click   R@ STR@ DROP pribor_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+\ выбор калибровки
+ \   " kals_combobox"   >R R@ STR@ DROP builder @ 2 gtk_builder_get_object kals_combobox   ! R> STRFREE  
+ \  " kals_liststore"  >R R@ STR@ DROP builder @ 2 gtk_builder_get_object kals_liststore  ! R> STRFREE
+ \     kals_liststore @ 1 gtk_list_store_clear DROP
+\    " kals_filechooserbutton"   >R R@ STR@ DROP builder @ 2 gtk_builder_get_object kals_filechooserbutton ! R> STRFREE  
+
+ \	n @ 10 +  row @ LoadDatas:
+  0 ['] timer_ticket  5000 3 g_timeout_add DROP
+
+  window @  1 gtk_widget_show DROP \ DROP
+ runcicle_createtable TO FileDialogFlag 
+ AddAllPriborList
+
+  0 gtk_main  DROP 
+;
+
+0 VALUE runwindows
+0 VALUE runcicle
+
+: startwindows
+STARTLOG 
+ ['] work_windows TASK TO runwindows
+  runwindows START
+; 
+
+: run_cicle 
+|| D: file ||
+BEGIN
+\ createloadfile
+FileDialogFlag runcicle_createtable = 
+	IF  0 TO FileDialogFlag
+		10 NumRowTablFreqFirst  TablFreqFirst LoadDatas: 
+		Refresh_freq_list
+		
+		 S" ./pribors/pribors.txt" INCLUDED
+
+	THEN
+\ loadfile
+FileDialogFlag runcicle_loadfile = 
+	IF  0 TO FileDialogFlag
+		DialogFileName 	ASCIIZ>  STR>S  file ! 
+		NumRowTablFreqFirst file @  TablFreqFirst LoadFile 
+		file @  STRFREE
+		Refresh_freq_list
+	THEN
+	
+\ savefile 
+FileDialogFlag runcicle_savefile =  
+	IF  0 TO FileDialogFlag
+		DialogFileName 	ASCIIZ>  STR>S  file ! 
+ 	 	file @ TablFreqFirst SaveData	
+		file @  STRFREE
+	THEN 
+	
+\ prinyat_button_freq_window	
+FileDialogFlag runcicle_prinyat_freq_window =  
+	IF  0 TO FileDialogFlag
+	
+\	CR ." number_string " 	  number_string @ . CR
+\	 ."  dialog_freq_begin_value = " dialog_freq_begin_value F. CR
+\	 ."  dialog_freq_end_value   = " dialog_freq_end_value   F. CR 
+\	 ."  dialog_freq_step_value  = " dialog_freq_step_value  F. CR
+\	 ."  dialog_time_step_value  = " dialog_time_step_value  F. CR	
+	 dialog_freq_begin_value   dialog_freq_end_value  F>  \ начальная частота  больше конечной
+	 IF dialog_freq_begin_value   dialog_freq_end_value   FTO dialog_freq_begin_value   FTO dialog_freq_end_value   THEN
+	 number_string @ 0 > \ не первая
+	  IF 
+	 dialog_freq_begin_value  number_string @  1 - 1  TablFreqFirst   adr_data_in_number F@ F< IF number_string @ 1 - 1  TablFreqFirst    adr_data_in_number F@ FTO dialog_freq_begin_value   THEN THEN
+	 number_string @ TablFreqFirst num_datas @    < \ не последняя
+	 IF dialog_freq_end_value    number_string  @ 1 + 0  TablFreqFirst    adr_data_in_number F@ F> IF number_string @ 1 + 0   TablFreqFirst   adr_data_in_number F@ FTO dialog_freq_end_value     THEN THEN
+	 
+	 dialog_freq_begin_value	number_string @ 0  TablFreqFirst    adr_data_in_number F!
+	 dialog_freq_end_value		number_string @ 1  TablFreqFirst    adr_data_in_number F!
+	 dialog_freq_step_value		number_string @ 2  TablFreqFirst    adr_data_in_number F!
+	 dialog_time_step_value		number_string @ 3  TablFreqFirst    adr_data_in_number F!
+	 Refresh_freq_list
+	THEN
+	
+\ add _freq_window	
+FileDialogFlag runcicle_add_freq_window =  
+	IF 
+\	." FileDialogFlag= runcicle_add_freq_window  " \ FileDialogFlag . CR
+		TablFreqFirst Add_num_datas
+		 0 TO FileDialogFlag
+		 Refresh_freq_list
+		\ TablFreqFirst num_datas @ 1 -  number_string ! \ записываем номнр добавленной строчки
+		\ freq_window_dialog    \ диалог редактирования
+	THEN
+	
+ 
+\ delete button_freq_window	
+FileDialogFlag runcicle_delete_freq_window =  
+	IF  0 TO FileDialogFlag
+\	."  DELETED " number_string @ . CR
+	number_string @ TablFreqFirst DelString
+	Refresh_freq_list
+	THEN	
+	
+\ transmit data to freq_windows	
+FileDialogFlag runcicle_trans_to_freq_windows =
+	IF  
+	\	number_string @ ."  FileDialogFlag ="   . CR 
+		number_string @ 0  TablFreqFirst    adr_data_in_number  F@  	FTO dialog_freq_begin_value 
+		number_string @ 1  TablFreqFirst    adr_data_in_number  F@  	FTO dialog_freq_end_value
+		number_string @ 2  TablFreqFirst    adr_data_in_number  F@  	FTO dialog_freq_step_value
+		number_string @ 3  TablFreqFirst    adr_data_in_number  F@  	FTO dialog_time_step_value
+  	 		
+\ ."  dialog_freq_begin_value = " dialog_freq_begin_value F. CR
+\ ."  dialog_freq_end_value   = " dialog_freq_end_value F. CR 
+\ ."  dialog_freq_step_value  = " dialog_freq_step_value F. CR
+\ ."  dialog_time_step_value  = " dialog_time_step_value F. CR
+\ CR CR 
+		0 TO FileDialogFlag
+	THEN	
+	
+	
+FileDialogFlag runcicle_trans_to_pribors    =
+	IF CR ." FileDialogFlag = runcicle_trans_to_pribors   " CR
+		0 TO FileDialogFlag
+		
+	THEN
+100 PAUSE
+AGAIN
+; 
+ 
+
+
+
+: startcicle
+ ['] run_cicle TASK TO runcicle
+  runcicle START
+; 
+\ : T S" .\metod\*.*" ['] addListMetod FIND-FILES ; T
+
+: z Refresh_freq_list ;
+
+ startwindows
+  startcicle

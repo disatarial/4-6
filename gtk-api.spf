@@ -87,8 +87,9 @@ CVAPI: gtk_toggle_button_get_active		libgtk-3-0.dll
 CVAPI:  gtk_combo_box_set_active		libgtk-3-0.dll 
 CVAPI:  gtk_combo_box_get_active		libgtk-3-0.dll 
 
+CVAPI: gtk_toggle_button_set_active		libgtk-3-0.dll
 
-WINAPI: Beep Kernel32.dll    
+WINAPI: Beep Kernel32.dll			
 0
 CELL -- domain
 CELL -- code \ 

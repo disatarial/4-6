@@ -162,6 +162,7 @@ DUP max_datas > IF DROP max_datas  -1 fUllErr ! ELSE 0 fUllErr ! THEN \ защита о
  ;
 
 : Add_num_datas \ добавить новый номер  строчки
+." Add_num_datas=" num_datas @ . max_datas @ . 
 	num_datas @ max_datas @ < \ не превышать макс кол-во строчек
 	IF
 		 num_datas @ 1 + num_datas   !
@@ -183,6 +184,8 @@ DUP max_datas > IF DROP max_datas  -1 fUllErr ! ELSE 0 fUllErr ! THEN \ защита о
 	 num_datas_in_string !  \ запомнили кол-во столбцов
 	 DUP  max_datas !	\ запомнили максимальное кол-во строчек!
 	 0  num_datas ! 
+	   ."  datas @ = "  datas @ . CR
+	  datas @ IF 	 datas @ FREE 	DROP THEN \ удалить прошлые таблички 
 	 num_datas_in_string @ FLOATS *  CELL + ALLOCATE THROW   datas !
 	 
  
@@ -197,7 +200,7 @@ addstring @ num_datas_in_string @ FLOATS *  CELL		\ размер добавляемой части
 nbytes @ +  ALLOCATE THROW   newdatas !				\ создали новую табличку
 
 datas @ newdatas @ nbytes @  CMOVE \ копировали данные из таблички
-\ LoadDatas:
+ 
 max_datas @ addstring @ max_datas  ! \ обновилиразмер таблички
 ;
 
@@ -228,6 +231,7 @@ ELSE
 THEN
 num_datas @ 1 - num_datas !
 ;
+
 : InsString \ добавить строчку, с раздвижением окружающих
 ;
 
@@ -272,9 +276,9 @@ num_datas @ 1 - num_datas !
 || D: file ||
 
 	outFileCreate file !
-	num_datas @ 
+	num_datas @   ."  num_datas = " DUP . CR 
 	0 
-	DO
+	DO ."  I = " I . CR 
 		I take_freq_in_number  FDUP  file @ FtoFile    F.
 		num_datas_in_string @ 1 
 		DO
@@ -328,10 +332,10 @@ num_datas @ 1 - num_datas !
 		n @ 1 + n !
 	UNTIL
 n @ 1 - n !
-	." кол-во строк = " n  @ . CR
+	." number string = " n  @ .  max_datas @ . CR 
 \ Убрано создаем табличку 
-\	n @ 10 +  row @ LoadDatas:
-\	n @ 1 - 	num_datas !	
+	n @ 10 +  row @ LoadDatas:
+	n @ 1 - 	num_datas !	
 
 \ табличка есть, добавляем в значения  с ограничением по её размеру !
 	max_datas @ n @ MIN 	num_datas !	

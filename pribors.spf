@@ -1,86 +1,106 @@
- REQUIRE FIND-FILES ~ac\FINDFILE.F         \ РїРѕРёСЃРє С„Р°Р№Р»РѕРІ
- REQUIRE AddNode ~ac\STR_LIST.F            \ СЃРїРёСЃРѕРє
+\ диалог работы со списком приборов 
+
+\ настройки приборов
+0
+1 CELLS		-- TypeNastPribor   \  прибор в соостетсвии с  внутри-програмным номером
+			\ 256		-- FileNastPribor
+			\ 64		-- NameNastPribor  \ название приборп
+64		-- NumberNastPribor  \ серийный номер прибора
+1 FLOATS	-- MaxFreqNastPribor
+1 FLOATS	-- MinFreqNastPribor
+1 CELLS		-- KanalNastPribor
+
+1 CELLS		-- MaxLevelNastPribor \ файл с макс уровнем на каждой чатоте
+1 CELLS		-- FileFactorNastPribor
+
+1 CELLS		-- InterfacePribor
+\ com port
+1 CELLS		-- NumComPortPribor
+1 CELLS		-- SpeedComPortPribor
+\ tcp/ip
+1 CELLS		-- NumIpAdresPribor
+1 CELLS		-- NumIpPosrPribor
+\ NI-GPIB
+CONSTANT StructNastPribor
+
+\ комплект оборудования для испытаний
+	VARIABLE gen_prib_obj
+	VARIABLE ampl_prib_obj
+	VARIABLE otvet_prib_obj
+	VARIABLE powm_prib_obj
+	VARIABLE injec_prib_obj
+	VARIABLE koltco_prib_obj	
+	VARIABLE tokmetr_prib_obj
+	
+HERE 0 , 256 ALLOT VALUE gen_prib_file
 
 
-\ VARIABLE  Interface
-\ РєРѕРґРёСЂРѕРІРєР° РґРѕРїСѓСЃРєР°РµРјРѕРіРѕ РёРЅС‚РµСЂС„РµР№СЃР° \ BIN 
-\ 1 -COMPORT
-\ 10 - TCP\IP
-\ 100 - GPIB NI
+\ файлы настроек для приборов
+	HERE  0 , StructNastPribor ALLOT VALUE  gen_prib_nastr
+	
+0 VALUE LoadNastPribor \ только  для загрузки даннях о проборе
+	
+	
+REQUIRE NastrPribor NastrPribor.spf
+
+VARIABLE prib_window_builder
+VARIABLE prib_window \ окно схемы испытаний 
+
+	VARIABLE gen_prib_window_button
+	VARIABLE ampl_prib_window_button
+	VARIABLE otvet_prib_window_button
+	VARIABLE powm_prib_window_button
+	VARIABLE injec_prib_window_button
+	VARIABLE koltco_prib_window_button	
+	VARIABLE tokmetr_prib_window_button
+	VARIABLE pribor_close_button
+	
+	
+	
+:NONAME  ."  pribor_close_button_click "	 0 ;  1 CELLS  CALLBACK:	pribor_close_button_click
+:NONAME  ."  ampl_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	ampl_prib_window_button_click
+:NONAME  ."  otvet_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	otvet_prib_window_button_click
+:NONAME  ."  powm_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	powm_prib_window_button_click
+:NONAME  ."  injec_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	injec_prib_window_button_click
+:NONAME  ."  koltco_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	koltco_prib_window_button_click
+:NONAME  ."  tokmetr_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	tokmetr_prib_window_button_click
+	
+:NONAME  ."  gen_prib_window_button_click =  " \ gen_prib_obj @ . CR
+\ S" generator "
+\ gen_prib_nastr gen_prib_obj @ 
+ gen_prib_file  gen_prib_nastr StartNastrPribor	 
+0 ;  1 CELLS  CALLBACK:	gen_prib_window_button_click
+	
+	
+	
+	
+: window_pribors_dialog_destroy   CR ." Exit "    	prib_window  @ 1 gtk_widget_destroy DROP  ;
+
+:NONAME  ."  pribor_close_button_click " window_pribors_dialog_destroy	 0 ;  1 CELLS  CALLBACK: pribor_close_button_click	
+	
+: prib_window_start
+
+  0 gtk_builder_new   prib_window_builder  !
+  gtkerror  " pribors.glade"  >R R@ STR@  DROP  prib_window_builder @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
+	\  prib_window--------------------------------------------------------------------------------------------
+  " prib_window"  DUP >R STR@  DROP prib_window_builder @ 2 gtk_builder_get_object  prib_window	  !  R> STRFREE \ 2DROP
+  " pribor_close_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object pribor_close_button !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] pribor_close_button_click  R@ STR@ DROP pribor_close_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " gen_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object gen_prib_window_button !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] gen_prib_window_button_click  R@ STR@ DROP gen_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " ampl_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object ampl_prib_window_button !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] ampl_prib_window_button_click  R@ STR@ DROP ampl_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " otvet_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object otvet_prib_window_button !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] otvet_prib_window_button_click  R@ STR@ DROP otvet_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " powm_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object powm_prib_window_button   !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] powm_prib_window_button_click  R@ STR@ DROP powm_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " injec_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object injec_prib_window_button  !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] injec_prib_window_button_click  R@ STR@ DROP injec_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " koltco_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object koltco_prib_window_button  !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] koltco_prib_window_button_click  R@ STR@ DROP koltco_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+  " tokmetr_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object tokmetr_prib_window_button  !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] tokmetr_prib_window_button_click  R@ STR@ DROP tokmetr_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
 
 
-
- 
- 
-VARIABLE pribors_builder 
-VARIABLE pribors_window
-VARIABLE name_label
-
-VARIABLE pribor_name_liststore
-VARIABLE pribor_name_combobox
-  0 , HERE  64 ALLOT  VALUE iter_pribor_name_liststore
-
-VARIABLE interface_treeview
-VARIABLE interface_liststore
-  0 , HERE  64 ALLOT  VALUE iter_interface_liststore
-
-VARIABLE comm_combobox
-VARIABLE comm_liststore
-  0 , HERE  64 ALLOT  VALUE iter_comm_liststore
-
-
-: addPriborListWin \ РґРѕР±Р°РІР»РµРЅРёРµ РїСЂРёР±РѕСЂРѕРІ РІ  СЃРїРёСЃРѕРє РЅР° СЌРєСЂР°РЅРµ
-\    iter_pribor_name_liststore   pribor_name_liststore   @ 2 gtk_list_store_append DROP
-\ 6 - STR>S \ STYPE
-\ -1 SWAP  >R R@ STR@ DROP 0 iter_pribor_name_liststore pribor_name_liststore  @ 5 gtk_list_store_set DROP R> STRFREE
-\ TYPE CR ListPribor
-ListPribor number?  0 > IF
-	ListPribor number?  0 
-	DO
-		iter_pribor_name_liststore   pribor_name_liststore   @ 2 gtk_list_store_append DROP
-		I ListPribor take ?DUP
-		IF ^ Name  DUP ASCIIZ> TYPE
-			1 SWAP  0 iter_pribor_name_liststore pribor_name_liststore  @ 5 gtk_list_store_set DROP 
-		THEN
-	LOOP
-THEN
-;
-
-: RefreshInterface_pribor
-|| D: data ||
-	freq_liststore @ 1 gtk_list_store_clear	 DROP
-;
-
-: StartPribor  { adr u  \  -- } 
-\ || D: adr D: u || u ! adr !
-	0 gtk_builder_new   pribors_builder !
-	error  " pribors.glade"   >R R@ STR@  DROP  pribors_builder @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
- 	" pribors_window"  >R R@ STR@  DROP pribors_builder @ 2 gtk_builder_get_object pribors_window !  R> STRFREE \ 2DROP
-
-  " name_label"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object name_label   ! R> STRFREE  
-   adr u  STR>S >R R@ STR@ DROP name_label @ 2 gtk_label_set_text DROP R> STRFREE  
-
- 	pribors_window @  1 gtk_widget_show DROP \ DROP
-
-  " pribor_name_combobox"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object pribor_name_combobox   ! R> STRFREE  
-  " pribor_name_liststore" >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object pribor_name_liststore  ! R> STRFREE  
-      pribor_name_liststore  @ 1 gtk_list_store_clear DROP
-      
-  \ С‡РёС‚Р°РµРј СЃРїРёСЃРѕРє РїСЂРёР±РѕСЂРѕРІ ( РєР°С‚Р°Р»РѕРіРѕРІ),\ СЃРѕР·РґР°РµРј СЃРїРёСЃРѕРє Рё РІС‹РІРѕРґРёРј РµРіРѕ РЅР° СЌРєСЂР°РЅ
- \    S" .\pribors\*.pnast" ['] 
- addPriborListWin \  FIND-FILES
-
-  " interface_treeview"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object interface_treeview   ! R> STRFREE  
-  " interface_liststore" >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object interface_liststore  ! R> STRFREE  
-
-  " comm_combobox"  >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object comm_combobox ! R> STRFREE  
-  " comm_liststore" >R R@ STR@ DROP pribors_builder  @ 2 gtk_builder_get_object comm_liststore ! R> STRFREE  
-
-    iter_comm_liststore  comm_liststore   @ 2 gtk_list_store_append DROP
- -1 " COM PORT" >R R@ STR@ DROP 0 iter_comm_liststore  comm_liststore @ 5 gtk_list_store_set DROP R> STRFREE
-
-    iter_comm_liststore  comm_liststore   @ 2 gtk_list_store_append DROP
- -1 " TCP/IP" >R R@ STR@ DROP 0 iter_comm_liststore  comm_liststore @ 5 gtk_list_store_set DROP R> STRFREE
-
-
-;
+   prib_window @  1 gtk_widget_show DROP \ DROP
+ ;

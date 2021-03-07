@@ -304,6 +304,14 @@ REQUIRE TIME&DATE lib/include/facil.f
 
 : IMMEDIATE_EVALUATE EVALUATE ; IMMEDIATE
 
+: LOAD_TO_BUFER { s-adr adr \ u   -- }
+s-adr STR@  TYPE CR
+s-adr STR@  DUP 255 > IF DROP 255 THEN -> u
+adr  1+ u CMOVE 
+s-adr STRFREE
+u adr  C!
+;
+
 \EOF
 
 : IM_ORDER ORDER ; IMMEDIATE
