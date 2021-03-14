@@ -1,0 +1,7 @@
+TO LoadNastPribor
+1  LoadNastPribor TypeNastPribor !
+1e5 LoadNastPribor MinFreqNastPribor F!
+6e9 LoadNastPribor MaxFreqNastPribor F!
+0 LoadNastPribor KanalNastPribor  !
+
+S"  loads nastr.txt " TYPE CR

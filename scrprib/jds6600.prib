@@ -44,7 +44,7 @@ CLASS jds6600
 name_pribor +  0 SWAP ! DROP
  ;
 
-: Name 	name_pribor ; \ название прибора
+: Name 	 name_pribor ; \ название прибора
 
 : Start
 || D:  Port   D: etalon  D: flag    ||
@@ -99,8 +99,8 @@ DUP STR@ TYPE
 \ CONTEXT 
 \ ORDER .  CR
 
-;CLASS jds6600 
- 
+;CLASS 
+jds6600   NewObjStatic
  
 \ CONTEXT 
 \ ORDER .  CR

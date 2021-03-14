@@ -1,10 +1,21 @@
- 1 gen_prib_obj     !
- 1 ampl_prib_obj    !
- 1 otvet_prib_obj   !
- 1 powm_prib_obj    !
- 1 injec_prib_obj   !
- 1 koltco_prib_obj  !	
- 1 tokmetr_prib_obj !
- 
-  " ./pribors/smb100/1000"  gen_prib_file  LOAD_TO_BUFER
-   
+ 1 gen_prib_nastr      TypeNastPribor  ! 
+ 0 gen_prib_nastr      InterfacePribor ! 
+ 0 ampl_prib_nastr     TypeNastPribor  ! 
+ 0 ampl_prib_nastr     InterfacePribor ! 
+ 0 otvet_prib_nastr    TypeNastPribor  ! 
+ 0 otvet_prib_nastr    InterfacePribor ! 
+ 0 powm_prib_nastr     TypeNastPribor  ! 
+ 0 powm_prib_nastr     InterfacePribor ! 
+ 0 injec_prib_nastr    TypeNastPribor  ! 
+ 0 injec_prib_nastr    InterfacePribor ! 
+ 0 koltco_prib_nastr   TypeNastPribor  ! 
+ 0 koltco_prib_nastr   InterfacePribor ! 
+ 0 tokmetr_prib_nastr  TypeNastPribor  ! 
+ 0 tokmetr_prib_nastr  InterfacePribor ! 
+" 3000.txt" gen_prib_nastr     NumberNastPribor LOAD_TO_BUFER 
+" " ampl_prib_nastr    NumberNastPribor LOAD_TO_BUFER 
+" " otvet_prib_nastr   NumberNastPribor LOAD_TO_BUFER 
+" " powm_prib_nastr    NumberNastPribor LOAD_TO_BUFER 
+" " injec_prib_nastr   NumberNastPribor LOAD_TO_BUFER 
+" " koltco_prib_nastr  NumberNastPribor LOAD_TO_BUFER 
+" " tokmetr_prib_nastr NumberNastPribor LOAD_TO_BUFER 

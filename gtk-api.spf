@@ -77,6 +77,7 @@ CVAPI: gtk_tree_model_get_value			libgtk-3-0.dll
 
 
 CVAPI: gtk_label_set_text			libgtk-3-0.dll 
+CVAPI: gtk_button_get_label			libgtk-3-0.dll 
 CVAPI: gtk_file_chooser_set_current_folder	libgtk-3-0.dll 
 
 CVAPI: gtk_image_set_from_file			libgtk-3-0.dll 

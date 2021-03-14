@@ -4,8 +4,8 @@
 0
 1 CELLS		-- TypeNastPribor   \  прибор в соостетсвии с  внутри-програмным номером
 			\ 256		-- FileNastPribor
-			\ 64		-- NameNastPribor  \ название приборп
-64		-- NumberNastPribor  \ серийный номер прибора
+		\ 64		-- NameNastPribor  \ название приборп
+32		-- NumberNastPribor  \  номер прибора
 1 FLOATS	-- MaxFreqNastPribor
 1 FLOATS	-- MinFreqNastPribor
 1 CELLS		-- KanalNastPribor
@@ -23,20 +23,20 @@
 \ NI-GPIB
 CONSTANT StructNastPribor
 
-\ комплект оборудования для испытаний
-	VARIABLE gen_prib_obj
-	VARIABLE ampl_prib_obj
-	VARIABLE otvet_prib_obj
-	VARIABLE powm_prib_obj
-	VARIABLE injec_prib_obj
-	VARIABLE koltco_prib_obj	
-	VARIABLE tokmetr_prib_obj
-	
-HERE 0 , 256 ALLOT VALUE gen_prib_file
+ 
+		
+\ HERE 0 , 32 ALLOT VALUE  gen_prib_numbera
+\ gen_prib_file
 
 
 \ файлы настроек для приборов
 	HERE  0 , StructNastPribor ALLOT VALUE  gen_prib_nastr
+	HERE  0 , StructNastPribor ALLOT VALUE  ampl_prib_nastr
+	HERE  0 , StructNastPribor ALLOT VALUE  otvet_prib_nastr
+	HERE  0 , StructNastPribor ALLOT VALUE  powm_prib_nastr
+	HERE  0 , StructNastPribor ALLOT VALUE  injec_prib_nastr
+	HERE  0 , StructNastPribor ALLOT VALUE  koltco_prib_nastr
+	HERE  0 , StructNastPribor ALLOT VALUE  tokmetr_prib_nastr
 	
 0 VALUE LoadNastPribor \ только  для загрузки даннях о проборе
 	
@@ -53,30 +53,55 @@ VARIABLE prib_window \ окно схемы испытаний
 	VARIABLE injec_prib_window_button
 	VARIABLE koltco_prib_window_button	
 	VARIABLE tokmetr_prib_window_button
-	VARIABLE pribor_close_button
+
+	VARIABLE pribor_close_button	
+	VARIABLE pribor_open_button
 	
+:NONAME gen_prib_window_button @ 1 gtk_button_get_label  gen_prib_nastr StartNastrPribor	 0 ;  1 CELLS  CALLBACK:	gen_prib_window_button_click
 	
+:NONAME ampl_prib_window_button     @ 1 gtk_button_get_label  ampl_prib_nastr     StartNastrPribor	0 ;  1 CELLS  CALLBACK:	ampl_prib_window_button_click
+:NONAME otvet_prib_window_button    @ 1 gtk_button_get_label  otvet_prib_nastr    StartNastrPribor	0 ;  1 CELLS  CALLBACK:	otvet_prib_window_button_click
+:NONAME powm_prib_window_button     @ 1 gtk_button_get_label  powm_prib_nastr     StartNastrPribor	0 ;  1 CELLS  CALLBACK:	powm_prib_window_button_click
+:NONAME injec_prib_window_button    @ 1 gtk_button_get_label  injec_prib_nastr    StartNastrPribor	0 ;  1 CELLS  CALLBACK:	injec_prib_window_button_click
+:NONAME koltco_prib_window_button   @ 1 gtk_button_get_label  koltco_prib_nastr   StartNastrPribor	0 ;  1 CELLS  CALLBACK:	koltco_prib_window_button_click
+:NONAME tokmetr_prib_window_button  @ 1 gtk_button_get_label  tokmetr_prib_nastr  StartNastrPribor	0 ;  1 CELLS  CALLBACK:	tokmetr_prib_window_button_click
 	
-:NONAME  ."  pribor_close_button_click "	 0 ;  1 CELLS  CALLBACK:	pribor_close_button_click
-:NONAME  ."  ampl_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	ampl_prib_window_button_click
-:NONAME  ."  otvet_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	otvet_prib_window_button_click
-:NONAME  ."  powm_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	powm_prib_window_button_click
-:NONAME  ."  injec_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	injec_prib_window_button_click
-:NONAME  ."  koltco_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	koltco_prib_window_button_click
-:NONAME  ."  tokmetr_prib_window_button_click "	 0 ;  1 CELLS  CALLBACK:	tokmetr_prib_window_button_click
-	
-:NONAME  ."  gen_prib_window_button_click =  " \ gen_prib_obj @ . CR
-\ S" generator "
-\ gen_prib_nastr gen_prib_obj @ 
- gen_prib_file  gen_prib_nastr StartNastrPribor	 
-0 ;  1 CELLS  CALLBACK:	gen_prib_window_button_click
 	
 	
 	
 	
 : window_pribors_dialog_destroy   CR ." Exit "    	prib_window  @ 1 gtk_widget_destroy DROP  ;
 
-:NONAME  ."  pribor_close_button_click " window_pribors_dialog_destroy	 0 ;  1 CELLS  CALLBACK: pribor_close_button_click	
+: save_pribors_dialog_data { \ file -- }
+" ./pribors/pribors.txt" outFileCreate  -> file 
+
+gen_prib_nastr     TypeNastPribor	@ file DtoFile " gen_prib_nastr      TypeNastPribor  ! " file StoFile file CRtoFile
+gen_prib_nastr     InterfacePribor	@ file DtoFile " gen_prib_nastr      InterfacePribor ! " file StoFile file CRtoFile 
+ampl_prib_nastr    TypeNastPribor	@ file DtoFile " ampl_prib_nastr     TypeNastPribor  ! " file StoFile file CRtoFile
+ampl_prib_nastr    InterfacePribor	@ file DtoFile " ampl_prib_nastr     InterfacePribor ! " file StoFile file CRtoFile
+otvet_prib_nastr   TypeNastPribor	@ file DtoFile " otvet_prib_nastr    TypeNastPribor  ! " file StoFile file CRtoFile
+otvet_prib_nastr   InterfacePribor	@ file DtoFile " otvet_prib_nastr    InterfacePribor ! " file StoFile file CRtoFile
+powm_prib_nastr    TypeNastPribor	@ file DtoFile " powm_prib_nastr     TypeNastPribor  ! " file StoFile file CRtoFile
+powm_prib_nastr    InterfacePribor	@ file DtoFile " powm_prib_nastr     InterfacePribor ! " file StoFile file CRtoFile
+injec_prib_nastr   TypeNastPribor	@ file DtoFile " injec_prib_nastr    TypeNastPribor  ! " file StoFile file CRtoFile
+injec_prib_nastr   InterfacePribor	@ file DtoFile " injec_prib_nastr    InterfacePribor ! " file StoFile file CRtoFile
+koltco_prib_nastr  TypeNastPribor 	@ file DtoFile " koltco_prib_nastr   TypeNastPribor  ! " file StoFile file CRtoFile
+koltco_prib_nastr  InterfacePribor	@ file DtoFile " koltco_prib_nastr   InterfacePribor ! " file StoFile file CRtoFile
+tokmetr_prib_nastr TypeNastPribor 	@ file DtoFile " tokmetr_prib_nastr  TypeNastPribor  ! " file StoFile file CRtoFile
+tokmetr_prib_nastr InterfacePribor	@ file DtoFile " tokmetr_prib_nastr  InterfacePribor ! " file StoFile file CRtoFile
+
+" {''} " file StoFile gen_prib_nastr      NumberNastPribor	DUP C@ SWAP 1+ SWAP  STR>S file StoFile	 " {''} gen_prib_nastr     NumberNastPribor LOAD_TO_BUFER " file StoFile file CRtoFile
+" {''} " file StoFile ampl_prib_nastr     NumberNastPribor  	DUP C@ SWAP 1+ SWAP  STR>S file StoFile	 " {''} ampl_prib_nastr    NumberNastPribor LOAD_TO_BUFER " file StoFile file CRtoFile
+" {''} " file StoFile otvet_prib_nastr    NumberNastPribor  	DUP C@ SWAP 1+ SWAP  STR>S file StoFile	 " {''} otvet_prib_nastr   NumberNastPribor LOAD_TO_BUFER " file StoFile file CRtoFile
+" {''} " file StoFile powm_prib_nastr     NumberNastPribor  	DUP C@ SWAP 1+ SWAP  STR>S file StoFile	 " {''} powm_prib_nastr    NumberNastPribor LOAD_TO_BUFER " file StoFile file CRtoFile
+" {''} " file StoFile injec_prib_nastr    NumberNastPribor  	DUP C@ SWAP 1+ SWAP  STR>S file StoFile	 " {''} injec_prib_nastr   NumberNastPribor LOAD_TO_BUFER " file StoFile file CRtoFile
+" {''} " file StoFile koltco_prib_nastr   NumberNastPribor	DUP C@ SWAP 1+ SWAP  STR>S file StoFile	 " {''} koltco_prib_nastr  NumberNastPribor LOAD_TO_BUFER " file StoFile file CRtoFile
+" {''} " file StoFile tokmetr_prib_nastr  NumberNastPribor	DUP C@ SWAP 1+ SWAP  STR>S file StoFile	 " {''} tokmetr_prib_nastr NumberNastPribor LOAD_TO_BUFER " file StoFile file CRtoFile
+file outFileClose
+;  
+
+:NONAME    window_pribors_dialog_destroy	 0 ;  1 CELLS  CALLBACK: pribor_close_button_click	
+:NONAME  save_pribors_dialog_data  window_pribors_dialog_destroy	 0 ;  1 CELLS  CALLBACK:  pribor_open_button_click
 	
 : prib_window_start
 
@@ -100,6 +125,11 @@ VARIABLE prib_window \ окно схемы испытаний
   " clicked"  >R 0 0 0  ['] koltco_prib_window_button_click  R@ STR@ DROP koltco_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
   " tokmetr_prib_window_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object tokmetr_prib_window_button  !    R> STRFREE \ 2DROP
   " clicked"  >R 0 0 0  ['] tokmetr_prib_window_button_click  R@ STR@ DROP tokmetr_prib_window_button  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+  " pribor_open_button" >R  R@ STR@  DROP prib_window_builder @ 2 gtk_builder_get_object pribor_open_button !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] pribor_open_button_click  R@ STR@ DROP pribor_open_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
+
 
 
    prib_window @  1 gtk_widget_show DROP \ DROP

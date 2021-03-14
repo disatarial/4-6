@@ -1,0 +1,33 @@
+ 
+ 
+1    gen_prib_nastr  TypeNastPribor !
+1    gen_prib_nastr  InterfacePribor !
+" 2000"  gen_prib_nastr  NumberNastPribor LOAD_TO_BUFER 
+
+0    ampl_prib_nastr  TypeNastPribor !
+0    ampl_prib_nastr  InterfacePribor !
+" "  ampl_prib_nastr  NumberNastPribor LOAD_TO_BUFER
+
+0    otvet_prib_nastr  TypeNastPribor !
+0    otvet_prib_nastr  InterfacePribor !
+" "  otvet_prib_nastr  NumberNastPribor LOAD_TO_BUFER
+
+0    powm_prib_nastr  TypeNastPribor !
+0    powm_prib_nastr  InterfacePribor !
+" "  powm_prib_nastr  NumberNastPribor LOAD_TO_BUFER
+
+0    injec_prib_nastr  TypeNastPribor !
+0    injec_prib_nastr  InterfacePribor !
+" " injec_prib_nastr  NumberNastPribor LOAD_TO_BUFER
+	   
+0    koltco_prib_nastr  TypeNastPribor !
+0    koltco_prib_nastr  InterfacePribor !
+" "  koltco_prib_nastr  NumberNastPribor LOAD_TO_BUFER
+	   
+	   
+0    tokmetr_prib_nastr  TypeNastPribor !
+0    tokmetr_prib_nastr  InterfacePribor !
+" "  tokmetr_prib_nastr  NumberNastPribor LOAD_TO_BUFER
+	   
+	   
+	  

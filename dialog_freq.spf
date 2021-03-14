@@ -56,12 +56,10 @@ VARIABLE freq_window  \ окно ввода/корректировки  диап
 :NONAME	0 ;  1 CELLS  CALLBACK: freq_end_togglebutton_MHz_click
 :NONAME	0 ;  1 CELLS  CALLBACK: freq_end_togglebutton_GHz_click
 	
-:NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_Hz_click
 :NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_kHz_click
 :NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_MHz_click
 :NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_GHz_click
-:NONAME	0 ;  1 CELLS  CALLBACK: freq_step_togglebutton_proc_click
-	
+ 	
 :NONAME	0 ;  1 CELLS  CALLBACK: time_step_togglebutton_mc_click
 :NONAME	0 ;  1 CELLS  CALLBACK: time_step_togglebutton_s_click
 :NONAME	0 ;  1 CELLS  CALLBACK: time_step_togglebutton_min_click

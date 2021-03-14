@@ -551,6 +551,12 @@ SET-CURRENT PREVIOUS
           CompileDeferredStatic
 ;
 
+
+: NewObjStatic ( ta -- addr )
+    ['] ZALLOT NewObjWith
+;
+
+
 : HypeDisposeVoc HypeDisposeVoc ;
 
 

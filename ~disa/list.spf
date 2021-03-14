@@ -1,5 +1,5 @@
 
-128 VALUE  Max_num_pribor \ максимально екол-во приборов в программе
+\ 128 VALUE  Max_num_pribor \ максимальное кол-во приборов в программе
 
 REQUIRE  HYPE ~day\hype3\hype3.f
 REQUIRE  N_S_PickUpWord ~disa\dopoln.f
@@ -8,21 +8,37 @@ CLASS Listmetod \ список всех приборов
 	CELL DEFS  datas \ ссылка на данные
 	CELL DEFS num_datas  \ количество загруженных ячеек
 	CELL DEFS max_datas  \ всего ячеек
-dispose: 
-	datas @ FREE THROW  
+	CELL DEFS cell_datas  \ размер ячейки
+\ dispose: 
+\	datas @ FREE THROW  
+\ ;
+
+ init:
+  ." CELL = " cell_datas @ . ."  " 
+\	  Max_num_pribor  max_datas !
+\	  Max_num_pribor   1 +  CELLS    ALLOCATE THROW   datas ! \ готовим место под список приборов
+\	 HERE 0 , Max_num_pribor   1 +  CELLS    ALLOT     datas ! \ готовим место под список приборов  в статике!
+ ;
+
+: allot  ( ко-во данных  )
+." CELL2 = "  cell_datas @ . ."  " DUP . ."  "
+	max_datas !
+	HERE 0 , max_datas @  1 +  cell_datas @ *   ALLOT     datas ! \ готовим место под список приборов  в статике!
 ;
 
-init:
-	  Max_num_pribor  max_datas !
-	  Max_num_pribor   1 +  CELLS    ALLOCATE THROW   datas ! \ готовим место под список приборов
+: allocate
+	max_datas !
+	HERE 0 , max_datas @  1 +  cell_datas @ *   ALLOCATE THROW    datas ! \ готовим место под список приборов  в статике!
 ;
 
-: add  \ добавить элемент в конец
-	datas @ num_datas @ CELLS + !
+: add   ( -- adr ) \ добавить элемент в конец, выдает адрес куда можно добавлятся
+|| D: adr ||
+	datas @ num_datas @ cell_datas @ * + adr ! \ 
 	num_datas @ max_datas @ < \ защита от переполнения
 	IF 
 		num_datas @ 1 + num_datas !
 	ELSE max_datas @ num_datas  ! THEN
+	adr @
  ; 
 
 : del ( -- flag ) \ удалить последний элемент
@@ -35,13 +51,13 @@ init:
 : adr (  n -- adr  | 0 )
 || D: number || \  получить адрес элемента
 	number  !	
-	
+		
 	number @ 0 <  	number @ max_datas @ > OR  \  номер в пределах таблички
 	IF 0
-	ELSE 	number @   CELLS  datas @ +
+	ELSE 	number @   cell_datas @ *  datas @ +
 	THEN
 ;
-: take   adr  DUP IF @ ELSE THEN ;
+\ : take   adr \  DUP IF @ ELSE THEN ;
 
 : number? num_datas @ ; \ кол-во элементов
 : clear 0 num_datas ! ;
@@ -54,23 +70,33 @@ word !
 	IF
 		 num_datas @ 0 
 		DO
-			I adr  @ word  @ EXECUTE
+			I adr   word  @ EXECUTE
 		LOOP
 	THEN 
 
 ;
 
-: see   \ вывести список в консоль
-\ || D: word ||
-\ word !
-\	num_datas @  \ max_datas @ MIN  
-\	0 >  
-\	IF
-\		 num_datas @ 0 
-\		DO
-\			I adr  @ .
-\		LOOP
-\	THEN 
-['] . made
-;
+
  ;CLASS
+ 
+ Listmetod SUBCLASS ListmetodCell
+init: CELL SUPER cell_datas !    ." CELL1 = " SUPER cell_datas @ . ."  "   ;
+: add SUPER add !    ;
+: take SUPER adr DUP IF @ ELSE THEN  ;
+: type @ . ;
+: see 	\ ['] type SUPER made 
+;
+;CLASS
+ 
+ 
+ Listmetod SUBCLASS ListmetodStr
+init: 32  SUPER cell_datas ! ;
+: add || D: adr D: u ||     u ! adr !  u @ SUPER cell_datas @  1 - > IF SUPER  cell_datas @  u ! THEN   adr @  SUPER add    u @    CMOVE ;
+: type  ASCIIZ> TYPE  ."   " ; 
+: see 	 ." see ListmetodStr= " SUPER num_datas @ .   ['] type SUPER made
+;
+;CLASS
+ 
+ 
+ 
+ 

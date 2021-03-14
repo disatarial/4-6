@@ -1,15 +1,22 @@
-Load jds6600...
-.....Load jds6600
-jds6600
-Load SMB100...
-.....Load smb100
-smb100
  datas @ = 0 
  Refresh_freq_list, num_datas = 0 
 
-./pribors/smb100/1000
+3000.txt
+
+
+
+
+
+
  pribor_button_click 
 FileDialogFlag = runcicle_trans_to_pribors   
- gen_prib_window_button_click =  jds6600smb100./pribors/smb100/1000/nastr.txt loads nastr.txt 
-......
+ jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  .  jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  .  jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  .  jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  .  jds6600  smb100 
+see ListmetodStr= 3 1000.txt  2000.txt  3000.txt   1000.txt  2000.txt  3000.txt  I= 0  I= 1  I= 2  .  . 
 Exit 

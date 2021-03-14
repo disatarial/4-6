@@ -58,15 +58,79 @@ HERE 0 , 512 ALLOT VALUE DialogFileName \ имя файла для диалогов
 
 
 REQUIRE Listmetod ~disa\list.spf
-Listmetod NEW ListPribor \ полный список приборов
 
 
 REQUIRE window_open_files_dialog files.spf
 REQUIRE StartFreqWindowsbuilder dialog_freq.spf
 
+
+VARIABLE number_string \ тут считаем  строчкe для загрузки в таблицу из файла
+
+ \ спиcок оборудования
+\ Listmetod 
+ListmetodCell NEW ListPribor \ полный список приборов
+128 ListPribor allot
+
+ S"  allot "  TYPE
+  
+: addOnePriborList ( adr u -- ) 
+|| D: s  D: flag || 
+0 flag !
+ " .\scrprib\" s !
+ s @ STR+  
+ s @ STR@   INCLUDE-PROBE  
+0= IF
+	\ NewObj   \ obj ! obj @ 
+\	S" newpribor" SFIND 
+\	IF
+		ListPribor add
+		ListPribor number?   \ . CR
+		 1 -  ListPribor take  DUP .   ^  Name   ASCIIZ>  ." " TYPE  CR
+\	 ELSE ." newpribor not found" THEN
+ELSE
+."   ERROR: pribor not included  " CR -1 flag ! 
+THEN
+  s @ STRFREE
+ \ flag 
+;
+
+
+
+: AddAllPriborList \ добавление приборов в полный список приборов
+	S" .\scrprib\*.prib" [']   addOnePriborList   FIND-FILES
+;
+
+AddAllPriborList
+ListPribor  see 
+
+\ Listmetod 
+ ListmetodStr NEW ListPriborNumber \ список номеров приборов
+ 32 ListPriborNumber allot
+
+ 
+ 
+: addOneNumberPriborList
+ \ 4 -  2DUP    TYPE  ."  "
+\ 2DROP
+
+   ListPriborNumber add
+;
+
+\ создаем список  заводских номеров у приборов
+: AddNumberPriborList  ( "pribor_name" -- )
+|| D: s ||  
+ ListPriborNumber clear
+ 
+ " ./pribors/" s !
+   s @ STR+  
+  " /*.txt" s @ S+    
+ 	 s @ STR@    [']   addOneNumberPriborList   FIND-FILES
+   s @ STRFREE
+   CR
+ ListPriborNumber see
+;
+
 REQUIRE prib_window_start pribors.spf
-
-
 
 VARIABLE window \ главное окно
 	VARIABLE begin_button \ кнопка старт
@@ -90,35 +154,9 @@ VARIABLE window \ главное окно
 	VARIABLE main_beg_freq_liststore
 	0 , HERE  64 ALLOT  VALUE iter_main_beg_freq_liststore
 
-VARIABLE number_string \ тут считаем  строчкe для загрузки в таблицу из файла
-
- \ спипос оборудования
- 
-
-: addOnePriborList ( adr u -- ) 
-|| D: s  D: flag || 
-0 flag !
- " .\scrprib\" s !
- s @ STR+  
- s @ STR@   INCLUDE-PROBE  
-0= IF
-	NewObj   \ obj ! obj @ 
-	ListPribor add
-	ListPribor number?  \ . CR
-	 1 -  ListPribor take  ^ Name ASCIIZ>  TYPE CR
-ELSE
-."   ERROR: pribor not included  " CR -1 flag ! 
-THEN
-  s @ STRFREE
- \ flag 
-;
-
-
-
-: AddAllPriborList \ добавление приборов в полный список приборов
-	S" .\scrprib\*.prib" [']   addOnePriborList   FIND-FILES
-;
-
+\ данные об оборудовании
+VARIABLE pribors_textview_bufer
+VARIABLE pribors_textview
 
 : loadTablFreqFirst  ."  loadTablFreqFirst"  CR
 || D: file ||
@@ -138,7 +176,12 @@ file @ STR@ DialogFileName  SWAP 1 + CMOVE
 runcicle_savefile TO FileDialogFlag
  
 ;
-	
+
+: SetPriborDataToTextview
+	S" " SWAP pribors_textview_bufer @  3 gtk_text_buffer_set_text DROP \ обнуляем окно
+  gen_prib_nastr TypeNastPribor @ ListPribor take     ^  Name   ASCIIZ>   SWAP   pribors_textview_bufer @ 3 gtk_text_buffer_insert_at_cursor DROP 
+;	
+
 : WorkFolder " ./work/" ; 
 
 :NONAME  
@@ -238,7 +281,10 @@ tree_view  ! path !  column !
 	
  :NONAME 
  || D: file ||
- ." ."
+ ."  . "
+\ pribors_textview 
+ \ ."  "
+ 
   1 ;  1 CELLS  CALLBACK:  timer_ticket 
  
  
@@ -290,6 +336,14 @@ tree_view  ! path !  column !
    " pribor_button" >R  R@ STR@  DROP builder @ 2 gtk_builder_get_object pribor_button !    R> STRFREE \ 2DROP
    " clicked"  >R 0 0 0  ['] pribor_button_click   R@ STR@ DROP pribor_button @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
 
+
+
+  " pribors_textview" >R  R@ STR@  DROP builder @  2 gtk_builder_get_object  pribors_textview !    R> STRFREE 
+   pribors_textview @ 1 gtk_text_view_get_buffer  pribors_textview_bufer ! 
+
+
+SetPriborDataToTextview
+
 \ выбор калибровки
  \   " kals_combobox"   >R R@ STR@ DROP builder @ 2 gtk_builder_get_object kals_combobox   ! R> STRFREE  
  \  " kals_liststore"  >R R@ STR@ DROP builder @ 2 gtk_builder_get_object kals_liststore  ! R> STRFREE
@@ -301,7 +355,7 @@ tree_view  ! path !  column !
 
   window @  1 gtk_widget_show DROP \ DROP
  runcicle_createtable TO FileDialogFlag 
- AddAllPriborList
+ 
 
   0 gtk_main  DROP 
 ;
@@ -422,8 +476,7 @@ AGAIN
  ['] run_cicle TASK TO runcicle
   runcicle START
 ; 
-\ : T S" .\metod\*.*" ['] addListMetod FIND-FILES ; T
-
+ 
 : z Refresh_freq_list ;
 
  startwindows

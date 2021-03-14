@@ -14,6 +14,8 @@
  
 VARIABLE NastrPribor_builder 
 VARIABLE NastrPribor_window
+VARIABLE NastrPribor_nastr
+
 VARIABLE name_label
 
 
@@ -35,6 +37,9 @@ VARIABLE comm_combobox
 VARIABLE comm_liststore
   0 , HERE  64 ALLOT  VALUE iter_comm_liststore
 
+VARIABLE NastrPribor_button_cancel
+VARIABLE NastrPribor_button_prinyat
+
 
 : addNastrPriborListWin \ добавление приборов в  список на экране
 \    iter_pribor_name_liststore   pribor_name_liststore   @ 2 gtk_list_store_append DROP
@@ -46,12 +51,40 @@ ListPribor number?  0 > IF
 	DO
 		iter_NastrPribor_name_liststore   NastrPribor_name_liststore   @ 2 gtk_list_store_append DROP
 		I ListPribor take ?DUP
-		IF ^ Name  DUP ASCIIZ> TYPE
+		IF ^ Name  DUP ASCIIZ>  ."  "  TYPE ."  " 
 			-1 SWAP  0 iter_NastrPribor_name_liststore NastrPribor_name_liststore  @ 5 gtk_list_store_set DROP 
 		THEN
 	LOOP
 THEN
 ;
+
+: addNnumberPriborListWin \ добавление приборов в  список на экране
+
+ ListPriborNumber number?  0 > IF
+	ListPriborNumber number?  0 
+	DO \ I .
+		iter_NastrPribor_number_liststore   NastrPribor_number_liststore   @ 2 gtk_list_store_append DROP
+		I ListPriborNumber adr \ ?DUP
+\		IF  
+		DUP ASCIIZ>  ."  "  TYPE ."  " 
+			-1 SWAP  0 iter_NastrPribor_number_liststore NastrPribor_number_liststore  @ 5 gtk_list_store_set DROP 
+\		THEN
+	LOOP
+ THEN
+;
+
+: findPriborNumber 
+|| D: nastr D: num ||
+nastr !
+0 num !
+ ListPriborNumber number?  0 > IF
+	ListPriborNumber number?  0 
+	DO  ."  I= " I .
+		I ListPriborNumber adr  ASCIIZ>      nastr @ NumberNastPribor DUP C@ SWAP 1+ SWAP     WildCMP-U 0 = IF I  num  ! THEN
+	LOOP
+num  @
+;
+
 
 \ :NONAME  ."  pribor_changes_click " CR 	0 ;  1 CELLS  CALLBACK: pribor_name_combobox_click 
 
@@ -59,18 +92,29 @@ THEN
 \ || D: data ||
 \ 	freq_liststore @ 1 gtk_list_store_clear	 DROP
 \ ;
+: NastrPribor_window_destroy  NastrPribor_window  @ 1 gtk_widget_destroy DROP    ;
+:NONAME NastrPribor_window_destroy   0 ;  1 CELLS  CALLBACK:  NastrPribor_button_cancel_click
 
+:NONAME 
+NastrPribor_nastr .
+	NastrPribor_name_combobox	@ 1 gtk_combo_box_get_active NastrPribor_nastr @ TypeNastPribor    ! 
+	comm_combobox			@ 1 gtk_combo_box_get_active NastrPribor_nastr @ InterfacePribor  !
+	NastrPribor_number_combobox	@ 1 gtk_combo_box_get_active ListPriborNumber adr  ASCIIZ> STR>S NastrPribor_nastr @ NumberNastPribor LOAD_TO_BUFER
 
- 
+	NastrPribor_window_destroy   
+ 0 ;  1 CELLS  CALLBACK:  NastrPribor_button_prinyat_click
 
-: StartNastrPribor  { file nastr    \ s -- } 
+: StartNastrPribor  {  name nastr    \ s -- } 
+
+nastr  NastrPribor_nastr !
+
 \ || D: adr D: u || u ! adr !
 	0 gtk_builder_new   NastrPribor_builder !
 	gtkerror  " NastrPribor.glade"   >R R@ STR@  DROP  NastrPribor_builder @ 3 gtk_builder_add_from_file DROP   R> STRFREE \ 2DROP 
  	" NastrPribor_window"  >R R@ STR@  DROP NastrPribor_builder @ 2 gtk_builder_get_object NastrPribor_window !  R> STRFREE \ 2DROP
 
   " name_label"  >R R@ STR@ DROP NastrPribor_builder  @ 2 gtk_builder_get_object name_label   ! R> STRFREE  
- \  adr u  STR>S >R R@ STR@ DROP name_label @ 2 gtk_label_set_text DROP R> STRFREE  
+   name name_label @ 2 gtk_label_set_text DROP 
 
  	NastrPribor_window @  1 gtk_widget_show DROP \ DROP
 
@@ -78,8 +122,6 @@ THEN
   " NastrPribor_name_liststore" >R R@ STR@ DROP NastrPribor_builder  @ 2 gtk_builder_get_object NastrPribor_name_liststore  ! R> STRFREE  
       NastrPribor_name_liststore  @ 1 gtk_list_store_clear DROP
       
-  \ читаем список приборов ( каталогов),\ создаем список и выводим его на экран
- \    S" .\pribors\*.pnast" ['] 
 addNastrPriborListWin
 
 
@@ -87,8 +129,8 @@ addNastrPriborListWin
   " NastrPribor_number_liststore" >R R@ STR@ DROP NastrPribor_builder  @ 2 gtk_builder_get_object NastrPribor_number_liststore  ! R> STRFREE  
       NastrPribor_number_liststore  @ 1 gtk_list_store_clear DROP
  
-
-
+   S" smb100"   AddNumberPriborList
+    addNnumberPriborListWin
 
 
   " interface_treeview"  >R R@ STR@ DROP NastrPribor_builder  @ 2 gtk_builder_get_object interface_treeview   ! R> STRFREE  
@@ -97,23 +139,24 @@ addNastrPriborListWin
   " comm_combobox"  >R R@ STR@ DROP NastrPribor_builder  @ 2 gtk_builder_get_object comm_combobox ! R> STRFREE  
   " comm_liststore" >R R@ STR@ DROP NastrPribor_builder  @ 2 gtk_builder_get_object comm_liststore ! R> STRFREE  
 
+
    iter_comm_liststore  comm_liststore   @ 2 gtk_list_store_append DROP
  -1 " COM PORT" >R R@ STR@ DROP 0 iter_comm_liststore  comm_liststore @ 5 gtk_list_store_set DROP R> STRFREE
     iter_comm_liststore  comm_liststore   @ 2 gtk_list_store_append DROP
  -1 " TCP/IP" >R R@ STR@ DROP 0 iter_comm_liststore  comm_liststore @ 5 gtk_list_store_set DROP R> STRFREE
 
-	nastr
-	file  DUP 1 + SWAP C@ STR>S  -> s    
-	" /nastr.txt"  s S+  
-	s STR@   2DUP 
-	TYPE   INCLUDED
-	s STRFREE
+
 	
-  nastr TypeNastPribor   @   NastrPribor_name_combobox @ 2 gtk_combo_box_set_active  DROP
+  nastr TypeNastPribor   @   NastrPribor_name_combobox		@ 2 gtk_combo_box_set_active  DROP
+  nastr InterfacePribor  @   comm_combobox			@ 2 gtk_combo_box_set_active  DROP
+  nastr findPriborNumber    NastrPribor_number_combobox		@ 2 gtk_combo_box_set_active  DROP
 
- \ nastr NumberNastPribor @   ASCIIZ> TYPE 
+  " NastrPribor_button_cancel" >R  R@ STR@  DROP NastrPribor_builder @ 2 gtk_builder_get_object NastrPribor_button_cancel  !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] NastrPribor_button_cancel_click  R@ STR@ DROP NastrPribor_button_cancel  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
 
- 
+  " NastrPribor_button_prinyat" >R  R@ STR@  DROP NastrPribor_builder @ 2 gtk_builder_get_object NastrPribor_button_prinyat !    R> STRFREE \ 2DROP
+  " clicked"  >R 0 0 0  ['] NastrPribor_button_prinyat_click  R@ STR@ DROP NastrPribor_button_prinyat  @ 6 g_signal_connect_data   R> STRFREE  DROP \ 2DROP 2DROP 2DROP
+
 
 ;
 
